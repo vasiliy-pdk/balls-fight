@@ -228,7 +228,7 @@ Game.State = (function(app, _) {
         },
         
         initStateProxy: function() {
-            var socket = io('http://shielded-scrubland-7178.herokuapp.com:3000');
+            var socket = io('http://shielded-scrubland-7178.herokuapp.com');
             return socket;
         }
     };
@@ -282,7 +282,7 @@ Game.Multiplayer = (function(app, _) {
         },
         
         newProxy: function() {
-            var socket = io('http://shielded-scrubland-7178.herokuapp.com:3000');
+            var socket = io('http://shielded-scrubland-7178.herokuapp.com');
             socket.on('greeting', function(data) {
                 console.log(data);
             });

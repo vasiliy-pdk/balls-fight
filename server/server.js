@@ -7,7 +7,7 @@ var port = (process.env.PORT || 3000);
 function handler (req, res) {
   res.writeHead(200, {'Content-Type': 'text/plain'});
   res.end('it is running\n');
-  
+
   //console.log('In handler');
   //fs.readFile(__dirname + '/index.html',
   //    function (err, data) {
