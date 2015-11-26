@@ -43,8 +43,9 @@ module.exports = function(grunt) {
 
       main: {
         files: [
-          {expand: true, cwd: 'client/pc.scripts/', src: ['*'], dest: 'build/scripts/', filter: 'isFile'},
-          {src: 'bin/localserver', dest: 'build/scripts/localserver'}
+          // @TODO: I did not expected that PC imports all the repo from github. So it's better to keep in
+          // build/scripts just concated code for all dependencies
+          {expand: true, cwd: 'client/pc.scripts/', src: ['*'], dest: 'build/scripts/', filter: 'isFile'}
         ]
       }
     },
