@@ -34,7 +34,7 @@ Game.Multiplayer = (function(app, _) {
         },
         
         newProxy: function() {
-            var socket = io('http://localhost:3000');
+            var socket = io('http://shielded-scrubland-7178.herokuapp.com:3000');
             socket.on('greeting', function(data) {
                 console.log(data);
             });
