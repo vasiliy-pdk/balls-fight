@@ -5,17 +5,20 @@ var fs = require('fs');
 var port = (process.env.PORT || 3000);
 
 function handler (req, res) {
-  console.log('In handler');
-  fs.readFile(__dirname + '/index.html',
-      function (err, data) {
-        if (err) {
-          res.writeHead(500);
-          return res.end('Error loading index.html');
-        }
-
-        res.writeHead(200);
-        res.end(data);
-      });
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.end('it is running\n');
+  
+  //console.log('In handler');
+  //fs.readFile(__dirname + '/index.html',
+  //    function (err, data) {
+  //      if (err) {
+  //        res.writeHead(500);
+  //        return res.end('Error loading index.html');
+  //      }
+  //
+  //      res.writeHead(200);
+  //      res.end(data);
+  //    });
 }
 
 var activityCheckDelay = 2000,
