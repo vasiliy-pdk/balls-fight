@@ -2,8 +2,7 @@ var _ = require('underscore');
 var app = require('http').createServer(handler);
 var io = require('socket.io')(app);
 var fs = require('fs');
-
-app.listen(3000);
+var port = (process.env.PORT || 3000);
 
 function handler (req, res) {
   console.log('In handler');
@@ -65,3 +64,7 @@ setInterval(function() {
     }
   }
 }, activityCheckDelay);
+
+app.listen(port, function() {
+  console.log('Node app is running on port', port);
+});
