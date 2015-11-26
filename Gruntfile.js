@@ -20,17 +20,9 @@ module.exports = function(grunt) {
       }
     },
 
-    clean: ['build/balls-fight/*', 'build/scripts/*'],
+    clean: ['build/scripts/*'],
 
     concat: {
-      options: {
-        // define a string to put between each file in the concatenated output
-        //separator: ';\n'
-      },
-      //libs: {
-      //  src: ['client/libs/**/*.js'],
-      //  dest: ['build/scripts/all-libs.js']
-      //},
       dist: {
         // the files to concatenate
         src: [
@@ -53,13 +45,6 @@ module.exports = function(grunt) {
         files: [
           {expand: true, cwd: 'client/pc.scripts/', src: ['*'], dest: 'build/scripts/', filter: 'isFile'},
           {src: 'bin/localserver', dest: 'build/scripts/localserver'}
-        ]
-      },
-
-      project: {
-        files: [
-          {expand: true, cwd: 'client/pc.project/', src: ['**'], dest: 'build/balls-fight/'},
-          {expand: true, cwd: 'build/scripts/', src: ['*', '!localserver'], dest: 'build/balls-fight/', filter: 'isFile'}
         ]
       }
     },
