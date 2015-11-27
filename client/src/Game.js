@@ -6,5 +6,7 @@ Game = (function (app, _) {
 
   Game.prototype = {};
 
+  Game.config = {};
+
   return Game;
 })(pc.Application.getApplication(), _);

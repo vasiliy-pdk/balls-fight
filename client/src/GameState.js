@@ -208,7 +208,7 @@ Game.State = (function(app, _) {
         },
         
         initStateProxy: function() {
-            var socket = io('http://shielded-scrubland-7178.herokuapp.com');
+            var socket = io(Game.config.serverUrl);
             return socket;
         }
     };
