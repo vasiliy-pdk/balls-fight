@@ -1,6 +1,8 @@
 var _ = require('underscore');
 
 var GameServer = function() {
+  this.id = _.uniqueId('game-');
+
   this.maxPlayers = 2;
   this.activityCheckDelay = 5000;
 
@@ -18,6 +20,10 @@ var GameServer = function() {
 };
 
 GameServer.prototype = {
+
+  getRoom: function(room) {
+    return this.id + '-' + room;
+  },
 
   setMaster: function(player) {
     var oldMaster = this.master;
@@ -64,6 +70,10 @@ GameServer.prototype = {
     }
 
     this.players.push(socket);
+    socket.join(this.getRoom('players')).
+        to(this.getRoom('players'))
+        .emit('player-connected');
+
     return true;
   },
 
@@ -79,12 +89,12 @@ GameServer.prototype = {
         diff = now - this.lastTick;
 
     if (this.master && diff < this.activityCheckDelay) {
-      console.log('Game is active [players, slaves, master, now, lastTick, difference]: ',
+      console.log('Game #' + this.id + ' is active [players, slaves, master, now, lastTick, difference]: ',
           this.players.length, this.slaves.length, !!this.master, now, this.lastTick, diff
       );
       return true;
     } else {
-      console.log('Game is NOT active [players, slaves, master, now, lastTick, difference]: ',
+      console.log('Game #' + this.id + ' is NOT active [players, slaves, master, now, lastTick, difference]: ',
           this.players.length, this.slaves.length, !!this.master, now, this.lastTick, diff
       );
       return false;
@@ -147,11 +157,13 @@ GameServer.prototype = {
 
   onSlaveDisconnect: function(slave) {
     this.removePlayer(slave);
+    this.slaves = _.without(this.slaves, slave);
     console.log('Slave disconnected');
   },
 
   removePlayer: function(player) {
     this.players = _.without(this.players, player);
+    player.to(this.getRoom('players')).emit('player-disconnected');
   }
 
 };
