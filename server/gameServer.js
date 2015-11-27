@@ -18,26 +18,52 @@ var GameServer = function() {
 };
 
 GameServer.prototype = {
+
+  setMaster: function(player) {
+    var oldMaster = this.master;
+    if(oldMaster) {
+      // switching to other
+      this.master.removeAllListeners();
+    }
+
+    this.master = player;
+    this.master.on('tick', this.onMasterTick);
+    // role confirmation is needed from the client
+    this.master.emit('set-role', 'master');
+    this.master.on('disconnect', _.bind(this.onMasterDisconnect, this, player));
+
+    if(oldMaster) {
+      console.log('Selected another master');
+    } else {
+      console.log('Selected master');
+    }
+  },
+
+  setSlave: function(player) {
+    this.slaves.push(player);
+    // role confirmation is needed from the client
+    player.emit('set-role', 'slave');
+    player.on('disconnect', _.bind(this.onSlaveDisconnect, this, player));
+    console.log('Slave added');
+  },
+
   addPlayers: function(players) {
     players.forEach(this.addPlayer, this);
   },
 
-  addPlayer: function(player) {
+  addPlayer: function(socket) {
     if(!this.needPlayers())
       return false;
 
+    console.log('Player connected');
+
     if (!this.master) {
-      this.master = player;
-      this.master.on('tick', this.onMasterTick);
-      this.master.emit('set-role', 'master');
-      console.log('Master connected');
+      this.setMaster(socket);
     } else {
-      this.slaves.push(player);
-      player.emit('set-role', 'slave');
-      console.log('Slave connected');
+      this.setSlave(socket);
     }
 
-    this.players.push(player);
+    this.players.push(socket);
     return true;
   },
 
@@ -49,7 +75,20 @@ GameServer.prototype = {
   },
 
   isActive: function() {
-    return (this.master && (_.now() - this.lastTick) < this.activityCheckDelay);
+    var now = _.now(),
+        diff = now - this.lastTick;
+
+    if (this.master && diff < this.activityCheckDelay) {
+      console.log('Game is active [players, slaves, master, now, lastTick, difference]: ',
+          this.players.length, this.slaves.length, !!this.master, now, this.lastTick, diff
+      );
+      return true;
+    } else {
+      console.log('Game is NOT active [players, slaves, master, now, lastTick, difference]: ',
+          this.players.length, this.slaves.length, !!this.master, now, this.lastTick, diff
+      );
+      return false;
+    }
   },
 
   checkActivity: function() {
@@ -62,14 +101,7 @@ GameServer.prototype = {
   kickPlayer: function(player) {
     this.players = _.without(this.players, player);
     player.disconnect();
-
-    if(player.id === this.master.id) {
-      console.log('Master disconnected');
-    } else if (_.indexOf(this.slaves, player) ) {
-      console.log('Slave disconnected');
-    } else {
-      console.log('Player disconnected');
-    }
+    player.removeAllListeners();
   },
 
   kickAll: function() {
@@ -95,7 +127,33 @@ GameServer.prototype = {
     for(var i = 0; i < this.slaves.length; i++) {
       this.slaves[i].emit('new_frame', {frames: data});
     }
+  },
+
+  onMasterDisconnect: function(master) {
+    this.removePlayer(master);
+    console.log('Master disconnected');
+
+    if(this.slaves.length) {
+      // Try to switch to another master
+      var slave = this.slaves.splice(0, 1)[0];
+      if (!slave) return;
+
+      slave.removeListener('disconnect', this.onSlaveDisconnect);
+      this.setMaster(slave);
+    } else {
+      this.destroy();
+    }
+  },
+
+  onSlaveDisconnect: function(slave) {
+    this.removePlayer(slave);
+    console.log('Slave disconnected');
+  },
+
+  removePlayer: function(player) {
+    this.players = _.without(this.players, player);
   }
+
 };
 
 module.exports = GameServer;
