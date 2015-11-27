@@ -78,7 +78,7 @@ GameServer.prototype = {
 
   destroy: function() {
     this.toDelete = true;
-    clearTimeout(this.activityCheckIntervalId);
+    clearInterval(this.activityCheckIntervalId);
     this.kickAll();
     delete this.master;
     delete this.slaves;
@@ -87,7 +87,7 @@ GameServer.prototype = {
   },
 
   initActivityCheck: function() {
-    return setTimeout(this.checkActivity, this.activityCheckDelay);
+    return setInterval(this.checkActivity, this.activityCheckDelay);
   },
 
   onMasterTick: function(data) {
