@@ -1,5 +1,5 @@
 var _ = require('underscore');
-var GameServer = require('gameServer');
+var GameServer = require('./gameServer');
 
 var GamesCluster = function() {
   this.maxActiveGames = 8;
@@ -34,11 +34,11 @@ GamesCluster.prototype = {
   },
 
   cleanDestroyed: function() {
-    var destroyed = _.filter(this.games, function(game) {
-      return game.toDelete;
+    var gamesBeforeClean = this.games.length;
+    this.games = _.filter(this.games, function(game) {
+      return !game.toDelete;
     });
-
-    this.games = _.without(this.games, destroyed);
+    console.log( (gamesBeforeClean - this.games.length) + ' games cleaned from cluster');
   }
 };
 

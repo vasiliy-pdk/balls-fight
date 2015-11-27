@@ -9,8 +9,12 @@ var GameServer = function() {
   this.lastTick = null;
   this.players = [];
 
-  this.activityCheckIntervalId = this.initActivityCheck();
   this.toDelete = false;
+
+  this.onMasterTick = _.bind(this.onMasterTick, this);
+  this.checkActivity = _.bind(this.checkActivity, this);
+
+  this.activityCheckIntervalId = this.initActivityCheck();
 };
 
 GameServer.prototype = {
@@ -29,7 +33,7 @@ GameServer.prototype = {
       console.log('Master connected');
     } else {
       this.slaves.push(player);
-      this.master.emit('set-role', 'slave');
+      player.emit('set-role', 'slave');
       console.log('Slave connected');
     }
 
@@ -38,11 +42,14 @@ GameServer.prototype = {
   },
 
   needPlayers: function() {
+    if (this.toDelete)
+      return 0;
+
     return this.maxPlayers - this.players.length;
   },
 
   isActive: function() {
-    return (this.master && this.slaves.length && _.now() - this.lastTick >= this.activityCheckDelay)
+    return (this.master && (_.now() - this.lastTick) < this.activityCheckDelay);
   },
 
   checkActivity: function() {
@@ -66,20 +73,21 @@ GameServer.prototype = {
   },
 
   kickAll: function() {
-    this.forEach(this.players, this.kickPlayer, this);
+    this.players.forEach(this.kickPlayer, this);
   },
 
   destroy: function() {
     this.toDelete = true;
-    clearInterval(this.activityCheckIntervalId);
+    clearTimeout(this.activityCheckIntervalId);
     this.kickAll();
     delete this.master;
     delete this.slaves;
     delete this.players;
+    console.log('Game destroyed');
   },
 
   initActivityCheck: function() {
-    return setInterval(_.bind(this.checkActivity, this), this.activityCheckDelay);
+    return setTimeout(this.checkActivity, this.activityCheckDelay);
   },
 
   onMasterTick: function(data) {

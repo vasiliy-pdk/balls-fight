@@ -1,7 +1,7 @@
 var app = require('http').createServer(handler);
 var io = require('socket.io')(app);
 var fs = require('fs');
-var cluster = require('gamesCluster');
+var cluster = require('./gamesCluster');
 var port = (process.env.PORT || 3000);
 
 function handler (req, res) {
