@@ -8,7 +8,7 @@ pc.script.create('game', function (app) {
   GameScript.prototype = {
     // Called once after all resources are loaded and before the first update
     initialize: function () {
-      this.game = Game.Multiplayer.Online();
+      this.game = new Game.Multiplayer.Online();
       this.game.initialize();
     },
 
