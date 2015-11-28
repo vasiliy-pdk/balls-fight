@@ -313,6 +313,10 @@ Game.Multiplayer.Online.Role = (function (app, _, io) {
     this.ownPlayer = app.root.findByName('ball2');
 
     this.input = Game.Input.getEntityInput(app.root.findByName('ball2'));
+
+    this.syncFrameTimer = 0;
+    this.syncFrameInterval = 0;
+    this.lastFrames = null;
   };
 
   SlaveRole.prototype = {
@@ -326,6 +330,14 @@ Game.Multiplayer.Online.Role = (function (app, _, io) {
 
     update: function(dt) {
       this.sendOwnInput();
+
+      if((_.now() - this.syncFrameTimer) >= this.syncFrameInterval && this.lastFrames) {
+        this.statePlayer.play(this.lastFrames);
+        this.syncFrameTimer = 0;
+        this.lastFrames = null;
+      } else {
+        this.syncFrameTimer += dt;
+      }
     },
 
     sendOwnInput: function() {
@@ -350,7 +362,8 @@ Game.Multiplayer.Online.Role = (function (app, _, io) {
     },
 
     onNewFrame: function(data) {
-      this.statePlayer.play(data.frames);
+      //this.statePlayer.play(data.frames);
+      this.lastFrames = data.frames;
     }
   };
 
