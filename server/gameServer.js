@@ -165,7 +165,6 @@ GameServer.prototype = {
   },
 
   onInputFrame: function(data) {
-    console.log('emitting frame-input to master: ', data);
     this.master.emit('frame-input', data);
   },
 
