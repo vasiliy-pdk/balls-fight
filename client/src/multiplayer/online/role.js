@@ -2,14 +2,21 @@ Game.Multiplayer = Game.Multiplayer || {};
 
 Game.Multiplayer.Online.Role = (function (app, _, io) {
 
-  var MasterRole = function(stateBuffer, stateProxy) {
+  var playableEntities = ['ball1', 'ball2'];
+
+  var MasterRole = function(stateBuffer, stateProxy, ownPlayer) {
     this.stateBuffer = stateBuffer;
     this.stateProxy = stateProxy;
 
-    this.ownPlayer = app.root.findByName('ball1');
+    if(!ownPlayer)
+      this.ownPlayer = playableEntities[0];
+    else
+      this.ownPlayer = ownPlayer;
 
-    this.input = Game.Input.getEntityInput(app.root.findByName('ball2'));
-    this.input.setInputSource(new Game.Multiplayer.Online.InputSource(this.stateProxy, 'ball2'));
+    _.without(playableEntities, this.ownPlayer).forEach(function(playableEntityName){
+      this.input = Game.Input.getEntityInput(app.root.findByName(playableEntityName));
+      this.input.setInputSource(new Game.Multiplayer.Online.InputSource(this.stateProxy, playableEntityName));
+    }, this);
   };
 
   MasterRole.prototype = {
@@ -23,16 +30,20 @@ Game.Multiplayer.Online.Role = (function (app, _, io) {
     }
   };
 
-  var SlaveRole = function(stateBuffer, stateProxy) {
+  var SlaveRole = function(stateBuffer, stateProxy, ownPlayer) {
     this.stateBuffer = stateBuffer;
     this.stateProxy = stateProxy;
     this.statePlayer = new Game.Multiplayer.Online.State.Player();
 
     this.onNewFrame = _.bind(this.onNewFrame, this);
 
-    this.ownPlayer = app.root.findByName('ball2');
+    if(!ownPlayer)
+      this.ownPlayer = playableEntities[1];
+    else
+      this.ownPlayer = ownPlayer;
 
-    this.input = Game.Input.getEntityInput(app.root.findByName('ball2'));
+    this.input = Game.Input.getEntityInput(app.root.findByName(this.ownPlayer));
+    this.input.setInputSource(new Game.Input.KeyboardSource());
 
     this.syncFrameTimer = null;
     this.syncFrameInterval = 0;
@@ -61,9 +72,8 @@ Game.Multiplayer.Online.Role = (function (app, _, io) {
     },
 
     sendOwnInput: function() {
-      // TODO: take into account game's id
       this.stateProxy.emit('frame-input', {
-        from: this.ownPlayer.getName(),
+        from: this.ownPlayer,
         frame: this.getOwnInput()
       });
     },

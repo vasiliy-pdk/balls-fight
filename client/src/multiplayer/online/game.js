@@ -46,20 +46,20 @@ Game.Multiplayer.Online = (function (app, _, io) {
       proxy
           .on('set-role', function (data) {
             console.log('Setting role: ', data);
-            self.setRole(data);
+            self.setRole(data.role, data.entityName);
           })
           .on('disconnect', function (data) {
             console.log('Server disconnected', data);
           })
           .on('player-connected', function (data) {
-            console.log('Player connected');
+            console.log('Player connected: ', data.entityName);
           })
           .on('player-disconnected', function (data) {
-            console.log('Player disconnected');
+            console.log('Player disconnected: ', data.entityName);
           });
     },
 
-    newRole: function (role) {
+    newRole: function (role, ownPlayer) {
       var roleClass;
       if (role === 'master') {
         roleClass = 'Master';
@@ -67,17 +67,17 @@ Game.Multiplayer.Online = (function (app, _, io) {
         roleClass = 'Slave';
       }
 
-      return new Game.Multiplayer.Online.Role[roleClass](this.stateBuffer, this.stateProxy);
+      return new Game.Multiplayer.Online.Role[roleClass](this.stateBuffer, this.stateProxy, ownPlayer);
     },
 
-    setRole: function (role) {
+    setRole: function (role, entityName) {
       if (this.role) {
         if (this.role.name === role) return;
         this.role.unbindProxyHandlers(this.stateProxy);
         this.role = null;
       }
 
-      this.role = this.newRole(role);
+      this.role = this.newRole(role, entityName);
       this.role.bindProxyHandlers(this.stateProxy);
     },
 
