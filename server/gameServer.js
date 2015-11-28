@@ -15,6 +15,7 @@ var GameServer = function() {
 
   this.onMasterTick = _.bind(this.onMasterTick, this);
   this.checkActivity = _.bind(this.checkActivity, this);
+  this.onInputFrame = _.bind(this.onInputFrame, this);
 
   this.activityCheckIntervalId = this.initActivityCheck();
 };
@@ -49,6 +50,7 @@ GameServer.prototype = {
     this.slaves.push(player);
     // role confirmation is needed from the client
     player.emit('set-role', 'slave');
+    player.on('frame-input', this.onInputFrame);
     player.on('disconnect', _.bind(this.onSlaveDisconnect, this, player));
     console.log('Slave added');
   },
@@ -149,6 +151,7 @@ GameServer.prototype = {
       if (!slave) return;
 
       slave.removeListener('disconnect', this.onSlaveDisconnect);
+      slave.removeListener('frame-input', this.onInputFrame);
       this.setMaster(slave);
     } else {
       this.destroy();
@@ -159,6 +162,11 @@ GameServer.prototype = {
     this.removePlayer(slave);
     this.slaves = _.without(this.slaves, slave);
     console.log('Slave disconnected');
+  },
+
+  onInputFrame: function(data) {
+    console.log('emitting frame-input to master: ', data);
+    this.master.emit('frame-input', data);
   },
 
   removePlayer: function(player) {

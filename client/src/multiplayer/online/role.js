@@ -5,6 +5,11 @@ Game.Multiplayer.Online.Role = (function (app, _, io) {
   var MasterRole = function(stateBuffer, stateProxy) {
     this.stateBuffer = stateBuffer;
     this.stateProxy = stateProxy;
+
+    this.ownPlayer = app.root.findByName('ball1');
+
+    this.input = Game.Input.getEntityInput(app.root.findByName('ball2'));
+    this.input.setInputSource(new Game.Multiplayer.Online.InputSource(this.stateProxy, 'ball2'));
   };
 
   MasterRole.prototype = {
@@ -12,7 +17,6 @@ Game.Multiplayer.Online.Role = (function (app, _, io) {
     unbindProxyHandlers: function(proxy) {},
 
     update: function(dt) {
-      // TODO: handle input
       this.stateBuffer.storeFrame(dt);
       this.stateProxy.emit('tick', this.stateBuffer.frames);
       this.stateBuffer.flush();
@@ -25,6 +29,10 @@ Game.Multiplayer.Online.Role = (function (app, _, io) {
     this.statePlayer = new Game.Multiplayer.Online.State.Player();
 
     this.onNewFrame = _.bind(this.onNewFrame, this);
+
+    this.ownPlayer = app.root.findByName('ball2');
+
+    this.input = Game.Input.getEntityInput(app.root.findByName('ball2'));
   };
 
   SlaveRole.prototype = {
@@ -37,7 +45,28 @@ Game.Multiplayer.Online.Role = (function (app, _, io) {
     },
 
     update: function(dt) {
-      // TODO: send input
+      this.sendOwnInput();
+    },
+
+    sendOwnInput: function() {
+      // TODO: take into account game's id
+      this.stateProxy.emit('frame-input', {
+        from: this.ownPlayer.getName(),
+        frame: this.getOwnInput()
+      });
+    },
+
+    getOwnInput: function() {
+      var commands = Game.Input.DirectionMap.DIRECTIONS,
+          input = [];
+
+      for (var i = 0; i < commands.length; i++) {
+        var command = commands[i];
+        if(this.input.isApplied(command))
+          input.push(command);
+      }
+
+      return input;
     },
 
     onNewFrame: function(data) {
