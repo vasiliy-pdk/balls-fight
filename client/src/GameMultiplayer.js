@@ -55,11 +55,28 @@ Game.Multiplayer = (function (app, _) {
         console.log(data);
       });
 
-      socket.on('new_frame', _.bind(function (data) {
-        this.statePlayer.play(data.frames);
-//                 this.statePlayer.setFrames(data.frames);
-//                 this.lastReceivedFrames = data.frames;
-      }, this));
+
+      socket
+        .on('set-role', function(data) {
+          console.log('Setting role: ', data);
+        })
+        .on('new_frame', _.bind(function (data) {
+            this.statePlayer.play(data.frames);
+    //                 this.statePlayer.setFrames(data.frames);
+    //                 this.lastReceivedFrames = data.frames;
+        }, this))
+        .on('disconnect', function(data) {
+          console.log('Server disconnected', data);
+        });
+
+      socket.on('player-connected', function(data) {
+        console.log('player connected');
+      });
+
+      socket.on('player-disconnected', function(data) {
+        console.log('player disconnected');
+      });
+
       return socket;
     }
   });

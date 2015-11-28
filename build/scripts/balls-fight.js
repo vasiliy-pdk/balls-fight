@@ -20,239 +20,15 @@ Game = (function (app, _) {
   return Game;
 })(pc.Application.getApplication(), _);
 
-/*
- * StateBuffer module
- */
-var Game = Game || {};
+// TODO: use requirejs or commonjs instead of this
+Game.Multiplayer = {};
+Game.Multiplayer.Online = {};
 
-Game.State = (function(app, _) {
-    console.log('Game.State loaded');
-    
-    var FrameStoreable = function(entity) {
-        this.entity = entity;
-        this.state = null;
-    };
+Game.Multiplayer = Game.Multiplayer || {};
 
-    FrameStoreable.prototype = {
-        store: function() {
-            this.state = this.getState();
-        },
+Game.Multiplayer.Online = (function (app, _, io) {
 
-        restore: function(state) {
-            this.entity.setPosition(this.restoreVector(state.position));
-            this.entity.setEulerAngles(this.restoreVector(state.rotation));
-        },
-
-        getState: function() {
-            var state = {};
-            state.name = this.entity.getName();
-            state.position = this.storeVector(this.entity.getPosition());
-            state.rotation = this.storeVector(this.entity.getEulerAngles());
-            return state;
-        },
-
-        storeVector: function (vec) {
-            return _.object(['x','y','z'], _.values(vec.data));
-        },
-
-        restoreVector: function(state) {
-            return new pc.Vec3(state.x, state.y, state.z);
-        }
-    };
-
-    var RigidBodyFrameStoreable = function(entity) {
-        FrameStoreable.call(this, entity);
-    };
-
-    _.extend(RigidBodyFrameStoreable.prototype, FrameStoreable.prototype, {
-        getState: function() {
-            var state = FrameStoreable.prototype.getState.apply(this);
-            state.linearVelocity = this.storeVector(this.entity.rigidbody.linearVelocity);
-            state.angularVelocity = this.storeVector(this.entity.rigidbody.angularVelocity);
-            return state;
-        },
-
-        restore: function(state) {
-            this.entity.rigidbody.teleport(this.restoreVector(state.position), this.restoreVector(state.rotation));
-            this.entity.rigidbody.linearVelocity = this.restoreVector(state.linearVelocity);
-            this.entity.rigidbody.angularVelocity = this.restoreVector(state.angularVelocity);
-        }
-    });
-
-    FrameStoreable._registry = {};
-
-    FrameStoreable.factory = function (entity) {
-        var storeable = FrameStoreable._registry[entity.getName()];
-
-        if(!storeable) {
-            if(entity.rigidbody && !entity.rigidbody.isStaticOrKinematic())
-                storeable = new RigidBodyFrameStoreable(entity);
-            else
-                storeable = new FrameStoreable(entity);
-
-            FrameStoreable._registry[entity.getName()] = storeable;
-        }
-
-        return storeable;
-    };
-
-    // GameStatePlayer replays a stored game state
-    // 
-    var GameStatePlayer = function(frames) {
-        this.frames = frames || [];
-        this.framesLeft = this.frames.length;
-
-        console.log('GameStatePlayer is ready to play ' + this.framesLeft + ' frames...');
-    };
-
-    GameStatePlayer.prototype = {
-        play: function(frames) {
-            if (frames) this.setFrames(frames);
-            
-            if (!this.framesLeft) return;
-
-            this.playFrame();
-
-            this.framesLeft--;
-            if(!this.framesLeft) console.log('Replay done');
-        },
-
-        playFrame: function() {
-            var frame = this.frames.shift();
-
-            frame.entities.forEach(function(entityState) {
-                var entity = app.root.findByName(entityState.name);
-                var storeable = FrameStoreable.factory(entity);
-                storeable.restore(entityState);
-            }, this);
-        },
-        
-        setFrames: function(frames) {
-            this.frames = frames;
-            this.framesLeft = frames.length;
-        }
-    };
-
-    // Creates a new GameStateBuffer instance
-    var GameStateBuffer = function (entity) {
-        this.entity = entity;
-
-        // Entities to store
-        this.storables = null;
-        this.frames = null;
-        
-        this.proxy = null;
-        this.send = null;
-    };
-
-    GameStateBuffer.prototype = {
-        // Called once after all resources are loaded and before the first update
-        initialize: function () {
-            this.recordTime = 0;
-            // game global time
-            this.time = 0;
-            this.storables = [];
-            this.frames = [];
-            this.initStoreables(this.getStorableNames());
-            
-            // TODO: separate concerns
-            this.send = true;
-            this.proxy = this.initStateProxy();
-        },
-
-        // Called every frame, dt is time in seconds since last update
-        update: function (dt) {
-            if (this.send) {
-                this.recordTime += dt;
-                this.storeFrame(dt);
-                this.proxy.emit('tick', this.frames);
-                this.flush();
-            } else if(this.recordTime >= this.timeToStore) {
-                if (this.replay) {
-                    this.replayFrames();
-                } else if (this.saveBuffer && !this.stored) {
-                    console.log('BufferFilled! Storing... ');
-                    var outputEl = document.createElement('pre');
-                    document.body.appendChild(outputEl);
-                    outputEl.innerHTML = JSON.stringify(this.frames);
-                    console.log('Done! Check the page');
-                    this.stored = true;
-                } 
-                return;
-            } else {
-                this.recordTime += dt;
-                this.storeFrame(dt);
-            }
-        },
-
-        initStoreables: function (names) {
-            names.forEach(function (name) {
-                var entity = app.root.findByName(name);
-                this.storables.push(FrameStoreable.factory(entity));
-            }, this);
-        },
-
-        storeFrame: function (dt) {
-            this.time += dt;
-
-            var frame = {
-                dt: dt,
-                time: this.time,
-                entities: []
-            };
-
-            this.storables.forEach(function (storable) {
-                frame.entities.push(storable.getState());
-            }, this);
-
-            this.frames.push(frame);
-        },
-
-        flush: function() {
-            this.frames = [];
-        },
-        
-        getStorableNames: function () {
-            var names = ['ball1', 'ball2', 'teleport-b'];
-//             _.range(1, 10).forEach(function (id) {
-//                 names.push('wooden-crate-' + id);
-//             });
-            return names;
-        },
-
-        // just to test
-        replayFrames: function() {
-            if (!this.statePlayer) {
-                this.statePlayer = new GameStatePlayer(this.frames);
-            }
-
-            this.statePlayer.play();
-        },
-        
-        initStateProxy: function() {
-            var socket = io(Game.config.serverUrl);
-            return socket;
-        }
-    };
-
-    return {
-        Buffer: GameStateBuffer,
-        Player: GameStatePlayer,
-        FrameStoreable: FrameStoreable,
-        RigidBodyFrameStoreable: RigidBodyFrameStoreable
-    };
-
-})(pc.Application.getApplication(), _);
-
-/*
- * END StateBuffer module
- */
-
-var Game = Game || {};
-
-Game.Multiplayer = (function (app, _) {
-
-  var getServerUrl = function() {
+  var getServerUrl = function () {
     var search = document.location.search,
         serverUrl = 'http://shielded-scrubland-7178.herokuapp.com';
 
@@ -267,56 +43,305 @@ Game.Multiplayer = (function (app, _) {
     return serverUrl;
   };
 
-  Game.config.serverUrl = getServerUrl();
-
-  OnlineSpectator = function (app) {
-    Game.call(this, app);
-
+  OnlineMultiplayer = function () {
+    this.role = null;
     this.stateBuffer = null;
-    // TODO: stateProxy? / networkProxy?
-    this.proxy = null;
+    this.stateProxy = null;
   };
 
-  _.extend(OnlineSpectator.prototype, {
+  OnlineMultiplayer.prototype = {
     initialize: function () {
-      this.statePlayer = this.newStatePlayer();
-      this.proxy = this.newProxy();
-      this.syncInterval = 0.05;
-      this.timeSinseLastSync = 0;
-      this.lastReceivedFrames = null;
-      console.log('OnlineSpectator initialized');
+      this.stateProxy = this.initStateProxy();
+      this.stateBuffer = this.initStateBuffer();
+    },
+
+    initStateProxy: function () {
+      var socket = io(getServerUrl());
+      this.bindProxyHandlers(socket);
+      return socket;
+    },
+
+    initStateBuffer: function () {
+      var buffer = new Game.Multiplayer.Online.State.Buffer();
+      buffer.initialize();
+      return buffer;
+    },
+
+    bindProxyHandlers: function (proxy) {
+      var self = this;
+      proxy
+          .on('set-role', function (data) {
+            console.log('Setting role: ', data);
+            self.setRole(data);
+          })
+          .on('disconnect', function (data) {
+            console.log('Server disconnected', data);
+          })
+          .on('player-connected', function (data) {
+            console.log('Player connected');
+          })
+          .on('player-disconnected', function (data) {
+            console.log('Player disconnected');
+          });
+    },
+
+    newRole: function (role) {
+      var roleClass;
+      if (role === 'master') {
+        roleClass = 'Master';
+      } else {
+        roleClass = 'Slave';
+      }
+
+      return new Game.Multiplayer.Online.Role[roleClass](this.stateBuffer, this.stateProxy);
+    },
+
+    setRole: function (role) {
+      if (this.role) {
+        if (this.role.name === role) return;
+        this.role.unbindProxyHandlers(this.stateProxy);
+        this.role = null;
+      }
+
+      this.role = this.newRole(role);
+      this.role.bindProxyHandlers(this.stateProxy);
     },
 
     update: function (dt) {
-//             this.timeSinseLastSync += dt;
-//             if (this.lastReceivedFrames && this.timeSinseLastSync >= this.syncInterval) {
-//                 this.statePlayer.play(this.lastReceivedFrames);
-//                 this.time = 0;
-//             }
+      if (this.role) this.role.update(dt);
+    }
+  };
+
+  return OnlineMultiplayer;
+})(pc.Application.getApplication(), _, io);
+
+Game.Multiplayer = Game.Multiplayer || {};
+
+Game.Multiplayer.Online.Role = (function (app, _, io) {
+
+  var MasterRole = function(stateBuffer, stateProxy) {
+    this.stateBuffer = stateBuffer;
+    this.stateProxy = stateProxy;
+  };
+
+  MasterRole.prototype = {
+    bindProxyHandlers: function(proxy) {},
+    unbindProxyHandlers: function(proxy) {},
+
+    update: function(dt) {
+      // TODO: handle input
+      this.stateBuffer.storeFrame(dt);
+      this.stateProxy.emit('tick', this.stateBuffer.frames);
+      this.stateBuffer.flush();
+    }
+  };
+
+  var SlaveRole = function(stateBuffer, stateProxy) {
+    this.stateBuffer = stateBuffer;
+    this.stateProxy = stateProxy;
+    this.statePlayer = new Game.Multiplayer.Online.State.Player();
+
+    this.onNewFrame = _.bind(this.onNewFrame, this);
+  };
+
+  SlaveRole.prototype = {
+    bindProxyHandlers: function(proxy) {
+      proxy.on('new_frame', this.onNewFrame);
     },
 
-    newStatePlayer: function () {
-      return new Game.State.Player();
+    unbindProxyHandlers: function(proxy) {
+      proxy.removeListener('new_frame', this.onNewFrame);
     },
 
-    newProxy: function () {
-      var socket = io(Game.config.serverUrl);
-      socket.on('greeting', function (data) {
-        console.log(data);
-      });
+    update: function(dt) {
+      // TODO: send input
+    },
 
-      socket.on('new_frame', _.bind(function (data) {
-        this.statePlayer.play(data.frames);
-//                 this.statePlayer.setFrames(data.frames);
-//                 this.lastReceivedFrames = data.frames;
-      }, this));
-      return socket;
+    onNewFrame: function(data) {
+      this.statePlayer.play(data.frames);
+    }
+  };
+
+  return {
+    Master: MasterRole,
+    Slave: SlaveRole
+  };
+
+})(pc.Application.getApplication(), _);
+
+Game.Multiplayer.Online.State = Game.Multiplayer.Online.State || {};
+
+Game.Multiplayer.Online.State = (function(app, _) {
+
+  var FrameStoreable = function(entity) {
+    this.entity = entity;
+    this.state = null;
+  };
+
+  FrameStoreable.prototype = {
+    store: function() {
+      this.state = this.getState();
+    },
+
+    restore: function(state) {
+      this.entity.setPosition(this.restoreVector(state.position));
+      this.entity.setEulerAngles(this.restoreVector(state.rotation));
+    },
+
+    getState: function() {
+      var state = {};
+      state.name = this.entity.getName();
+      state.position = this.storeVector(this.entity.getPosition());
+      state.rotation = this.storeVector(this.entity.getEulerAngles());
+      return state;
+    },
+
+    storeVector: function (vec) {
+      return _.object(['x','y','z'], _.values(vec.data));
+    },
+
+    restoreVector: function(state) {
+      return new pc.Vec3(state.x, state.y, state.z);
+    }
+  };
+
+  var RigidBodyFrameStoreable = function(entity) {
+    FrameStoreable.call(this, entity);
+  };
+
+  // @TODO: Implement correct inheritance here
+  _.extend(RigidBodyFrameStoreable.prototype, FrameStoreable.prototype, {
+    getState: function() {
+      var state = FrameStoreable.prototype.getState.apply(this);
+      state.linearVelocity = this.storeVector(this.entity.rigidbody.linearVelocity);
+      state.angularVelocity = this.storeVector(this.entity.rigidbody.angularVelocity);
+      return state;
+    },
+
+    restore: function(state) {
+      this.entity.rigidbody.teleport(this.restoreVector(state.position), this.restoreVector(state.rotation));
+      this.entity.rigidbody.linearVelocity = this.restoreVector(state.linearVelocity);
+      this.entity.rigidbody.angularVelocity = this.restoreVector(state.angularVelocity);
     }
   });
 
-  exports = {};
-  exports.Online = {};
-  exports.Online.Spectator = OnlineSpectator;
+  // @TODO: Use a private registry
+  FrameStoreable._registry = {};
 
-  return exports;
+  FrameStoreable.factory = function (entity) {
+    var storeable = FrameStoreable._registry[entity.getName()];
+
+    if(!storeable) {
+      if(entity.rigidbody && !entity.rigidbody.isStaticOrKinematic())
+        storeable = new RigidBodyFrameStoreable(entity);
+      else
+        storeable = new FrameStoreable(entity);
+
+      FrameStoreable._registry[entity.getName()] = storeable;
+    }
+
+    return storeable;
+  };
+
+  return {
+    FrameStoreable: FrameStoreable,
+    RigidBodyFrameStoreable: RigidBodyFrameStoreable
+  };
+
 })(pc.Application.getApplication(), _);
+
+Game.Multiplayer.Online.State.Buffer = (function(app, _, FrameStoreable) {
+
+  // Creates a new GameStateBuffer instance
+  var GameStateBuffer = function () {
+    // Entities to store
+    this.storables = null;
+
+    this.frames = null;
+  };
+
+  GameStateBuffer.prototype = {
+    // Called once after all resources are loaded and before the first update
+    initialize: function () {
+      this.storables = [];
+      this.frames = [];
+      this.initStoreables(this.getStorableNames());
+    },
+
+    initStoreables: function (names) {
+      names.forEach(function (name) {
+        var entity = app.root.findByName(name);
+        this.storables.push(FrameStoreable.factory(entity));
+      }, this);
+    },
+
+    storeFrame: function (dt) {
+      var frame = {
+        dt: dt,
+        time: _.now(),
+        entities: []
+      };
+
+      this.storables.forEach(function (storable) {
+        frame.entities.push(storable.getState());
+      }, this);
+
+      this.frames.push(frame);
+    },
+
+    flush: function() {
+      this.frames = [];
+    },
+
+    // @TODO: get from the config
+    getStorableNames: function () {
+      var names = ['ball1', 'ball2', 'teleport-b'];
+//             _.range(1, 10).forEach(function (id) {
+//                 names.push('wooden-crate-' + id);
+//             });
+      return names;
+    }
+  };
+
+  return GameStateBuffer;
+
+})(pc.Application.getApplication(), _, Game.Multiplayer.Online.State.FrameStoreable);
+
+Game.Multiplayer.Online.State.Player = (function(app, _, FrameStoreable) {
+
+  // GameStatePlayer replays a stored game state
+  var GameStatePlayer = function (frames) {
+    this.frames = frames || [];
+    this.framesLeft = this.frames.length;
+  };
+
+  GameStatePlayer.prototype = {
+    play: function (frames) {
+      if (frames) this.setFrames(frames);
+
+      if (!this.framesLeft) return;
+
+      this.playFrame();
+
+      this.framesLeft--;
+    },
+
+    playFrame: function () {
+      var frame = this.frames.shift();
+
+      frame.entities.forEach(function (entityState) {
+        var entity = app.root.findByName(entityState.name);
+        var storeable = FrameStoreable.factory(entity);
+        storeable.restore(entityState);
+      }, this);
+    },
+
+    setFrames: function (frames) {
+      this.frames = frames;
+      this.framesLeft = frames.length;
+    }
+  };
+
+  return GameStatePlayer;
+
+})(pc.Application.getApplication(), _, Game.Multiplayer.Online.State.FrameStoreable);

@@ -42,6 +42,7 @@ Game.State = (function(app, _) {
         FrameStoreable.call(this, entity);
     };
 
+    // @TODO: Implement correct inheritance here
     _.extend(RigidBodyFrameStoreable.prototype, FrameStoreable.prototype, {
         getState: function() {
             var state = FrameStoreable.prototype.getState.apply(this);
@@ -92,7 +93,6 @@ Game.State = (function(app, _) {
             this.playFrame();
 
             this.framesLeft--;
-            if(!this.framesLeft) console.log('Replay done');
         },
 
         playFrame: function() {

@@ -28,8 +28,11 @@ module.exports = function(grunt) {
         src: [
           'client/libs/**/*.js',
           'client/src/Game.js',
-          'client/src/GameState.js',
-          'client/src/GameMultiplayer.js'
+          'client/src/multiplayer/online/game.js',
+          'client/src/multiplayer/online/role.js',
+          'client/src/multiplayer/online/state/storeable.js',
+          'client/src/multiplayer/online/state/buffer.js',
+          'client/src/multiplayer/online/state/player.js'
         ],
         // the location of the resulting JS file
         dest: 'build/scripts/<%= pkg.name %>.js'
