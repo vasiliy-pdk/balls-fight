@@ -28,6 +28,7 @@ module.exports = function(grunt) {
         src: [
           'client/libs/**/*.js',
           'client/src/Game.js',
+          'client/src/input/directionMap.js',
           'client/src/multiplayer/online/game.js',
           'client/src/multiplayer/online/role.js',
           'client/src/multiplayer/online/state/storeable.js',
