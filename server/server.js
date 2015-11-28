@@ -9,7 +9,8 @@ function handler (req, res) {
   res.end('it is running\n');
 }
 
-io.origins('localhost:* playcanvas.com:80 playcanv.as:80');
+//io.origins('*');
+//io.origins('localhost:* playcanvas.com:80 playcanv.as:80');
 
 io.on('connection', function (socket) {
   socket.emit('greeting', { hello: 'world' });
