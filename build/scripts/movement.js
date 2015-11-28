@@ -30,7 +30,12 @@ pc.script.create('movement', function (app) {
 
   Movement.prototype = {
     initialize: function () {
-      this.dMap = new Game.Input.DirectionMap(this.controlMap);
+      this.input = Game.Input.getEntityInput(this.entity);
+      if(this.controlMap) {
+        var dMap = new Game.Input.DirectionMap(this.controlMap);
+        this.input.setInputSource(new Game.Input.KeyboardSource(dMap));
+      }
+
       this.entity.collision.on('collisionstart', this.onCollisionStart, this);
     },
 
@@ -40,19 +45,19 @@ pc.script.create('movement', function (app) {
       var forceZ = 0;
 
       // calculate force based on pressed keys
-      if (app.keyboard.isPressed(this.dMap.getKey('w'))) {
+      if (this.input.isApplied('w')) {
         forceX = -this.speed;
       }
 
-      if (app.keyboard.isPressed(this.dMap.getKey('e'))) {
+      if (this.input.isApplied('e')) {
         forceX += this.speed;
       }
 
-      if (app.keyboard.isPressed(this.dMap.getKey('n'))) {
+      if (this.input.isApplied('n')) {
         forceZ = -this.speed;
       }
 
-      if (app.keyboard.isPressed(this.dMap.getKey('s'))) {
+      if (this.input.isApplied('s')) {
         forceZ += this.speed;
       }
 
