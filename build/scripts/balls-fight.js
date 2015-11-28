@@ -314,7 +314,7 @@ Game.Multiplayer.Online.Role = (function (app, _, io) {
 
     this.input = Game.Input.getEntityInput(app.root.findByName('ball2'));
 
-    this.syncFrameTimer = 0;
+    this.syncFrameTimer = null;
     this.syncFrameInterval = 0;
     this.lastFrames = null;
   };
@@ -331,7 +331,7 @@ Game.Multiplayer.Online.Role = (function (app, _, io) {
     update: function(dt) {
       this.sendOwnInput();
 
-      if((_.now() - this.syncFrameTimer) >= this.syncFrameInterval && this.lastFrames) {
+      if((this.syncFrameTimer >= this.syncFrameInterval && this.lastFrames) || this.syncFrameTimer === null) {
         this.statePlayer.play(this.lastFrames);
         this.syncFrameTimer = 0;
         this.lastFrames = null;
