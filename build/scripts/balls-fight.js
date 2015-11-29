@@ -371,69 +371,63 @@ exports.Master = MasterRole;
 exports.Slave = SlaveRole;
 
 },{"../../app":1,"../../input":3,"../../input/source/online":6,"./state/player":10}],9:[function(require,module,exports){
-var FrameStorable = require('./storable').FrameStorable;
+var app = require('../../../app'),
+    FrameStorable = require('./storable').FrameStorable;
 
-module.exports = (function(app, _, FrameStorable) {
+// Creates a new GameStateBuffer instance
+var GameStateBuffer = function () {
+  this.frames = null;
+};
 
-  // Creates a new GameStateBuffer instance
-  var GameStateBuffer = function () {
-    // Entities to store
-    this.storables = null;
+GameStateBuffer.prototype = {
+  // Called once after all resources are loaded and before the first update
+  initialize: function () {
+    this.frames = [];
+    this.initStorables(this.getStorableNames());
+  },
 
-    this.frames = null;
-  };
+  initStorables: function (names) {
+    names.forEach(function (name) {
+      var entity = app.root.findByName(name);
+      FrameStorable.factory(entity);
+    }, this);
+  },
 
-  GameStateBuffer.prototype = {
-    // Called once after all resources are loaded and before the first update
-    initialize: function () {
-      this.frames = [];
-      this.initStorables(this.getStorableNames());
-    },
+  storeFrame: function (dt) {
+    var frame = {
+      dt: dt,
+      time: _.now(),
+      entities: []
+    };
 
-    initStorables: function (names) {
-      names.forEach(function (name) {
-        var entity = app.root.findByName(name);
-        FrameStorable.factory(entity);
-      }, this);
-    },
+    this.getStorables().forEach(function (storable) {
+      frame.entities.push(storable.getState());
+    }, this);
 
-    storeFrame: function (dt) {
-      var frame = {
-        dt: dt,
-        time: _.now(),
-        entities: []
-      };
+    this.frames.push(frame);
+  },
 
-      this.getStorables().forEach(function (storable) {
-        frame.entities.push(storable.getState());
-      }, this);
+  flush: function() {
+    this.frames = [];
+  },
 
-      this.frames.push(frame);
-    },
+  getStorables: function() {
+    return _.values(FrameStorable.getAll());
+  },
 
-    flush: function() {
-      this.frames = [];
-    },
+  // @TODO: get from the config
+  getStorableNames: function () {
+    var names = ['ball1', 'ball2', 'teleport-b'];
+    _.range(1, 3).forEach(function (id) {
+       names.push('wooden-crate-' + id);
+    });
+    return names;
+  }
+};
 
-    getStorables: function() {
-      return _.values(FrameStorable.getAll());
-    },
+module.exports = GameStateBuffer;
 
-    // @TODO: get from the config
-    getStorableNames: function () {
-      var names = ['ball1', 'ball2', 'teleport-b'];
-      _.range(1, 3).forEach(function (id) {
-         names.push('wooden-crate-' + id);
-      });
-      return names;
-    }
-  };
-
-  return GameStateBuffer;
-
-})(pc.Application.getApplication(), _, FrameStorable);
-
-},{"./storable":11}],10:[function(require,module,exports){
+},{"../../../app":1,"./storable":11}],10:[function(require,module,exports){
 var FrameStorable = require('./storable').FrameStorable;
 
 module.exports = (function(app, _, FrameStorable) {
