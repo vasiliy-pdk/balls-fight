@@ -1,3 +1,6 @@
+var Input = bf.Input;
+var DirectionMap = Input.KeyboardSource.DirectionMap;
+
 // Controls the movement speed
 pc.script.attribute('speed', 'number', 0.1, {
   min: 0.05,
@@ -9,13 +12,13 @@ pc.script.attribute('speed', 'number', 0.1, {
 pc.script.attribute('controlMap', 'enumeration', 0, {
   enumerations: [{
     name: 'Arrows',
-    value: Game.Input.DirectionMap.MAP_ARROWS
+    value: DirectionMap.MAP_ARROWS
   }, {
     name: 'Wsad',
-    value: Game.Input.DirectionMap.MAP_WSAD
+    value: DirectionMap.MAP_WSAD
   }, {
     name: 'Numbers',
-    value: Game.Input.DirectionMap.MAP_NUMBERS
+    value: DirectionMap.MAP_NUMBERS
   }]
 });
 
@@ -30,10 +33,10 @@ pc.script.create('movement', function (app) {
 
   Movement.prototype = {
     initialize: function () {
-      this.input = Game.Input.getEntityInput(this.entity);
+      this.input = Input.getEntityInput(this.entity);
       if(this.controlMap) {
-        var dMap = new Game.Input.DirectionMap(this.controlMap);
-        this.input.setInputSource(new Game.Input.KeyboardSource(dMap));
+        var dMap = new DirectionMap(this.controlMap);
+        this.input.setInputSource(new Input.KeyboardSource(dMap));
       }
 
       this.entity.collision.on('collisionstart', this.onCollisionStart, this);

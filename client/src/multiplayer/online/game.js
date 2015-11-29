@@ -1,6 +1,7 @@
-Game.Multiplayer = Game.Multiplayer || {};
+var StateBuffer = require('./state/buffer');
+var roles = require('./role');
 
-Game.Multiplayer.Online = (function (app, _, io) {
+module.exports = (function (app, _, io) {
 
   var getServerUrl = function () {
     var search = document.location.search,
@@ -36,7 +37,7 @@ Game.Multiplayer.Online = (function (app, _, io) {
     },
 
     initStateBuffer: function () {
-      var buffer = new Game.Multiplayer.Online.State.Buffer();
+      var buffer = new StateBuffer();
       buffer.initialize();
       return buffer;
     },
@@ -67,7 +68,7 @@ Game.Multiplayer.Online = (function (app, _, io) {
         roleClass = 'Slave';
       }
 
-      return new Game.Multiplayer.Online.Role[roleClass](this.stateBuffer, this.stateProxy, ownPlayer);
+      return new roles[roleClass](this.stateBuffer, this.stateProxy, ownPlayer);
     },
 
     setRole: function (role, entityName) {

@@ -1,4 +1,6 @@
-Game.Multiplayer.Online.State.Player = (function(app, _, FrameStorable) {
+var FrameStorable = require('./storable').FrameStorable;
+
+module.exports = (function(app, _, FrameStorable) {
 
   // GameStatePlayer replays a stored game state
   var GameStatePlayer = function (frames) {
@@ -35,4 +37,4 @@ Game.Multiplayer.Online.State.Player = (function(app, _, FrameStorable) {
 
   return GameStatePlayer;
 
-})(pc.Application.getApplication(), _, Game.Multiplayer.Online.State.FrameStorable);
+})(pc.Application.getApplication(), _, FrameStorable);

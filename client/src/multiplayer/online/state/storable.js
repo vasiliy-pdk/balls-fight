@@ -1,6 +1,4 @@
-Game.Multiplayer.Online.State = Game.Multiplayer.Online.State || {};
-
-Game.Multiplayer.Online.State = (function(app, _) {
+module.exports = (function(app, _) {
   var storablesRegistry = {};
 
   var FrameStorable = function(entity, config) {

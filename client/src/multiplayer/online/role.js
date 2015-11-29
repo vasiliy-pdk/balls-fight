@@ -1,6 +1,8 @@
-Game.Multiplayer = Game.Multiplayer || {};
+var Input = require('../../input');
+var OnlineInputSource = require('../../input/source/online');
+var StatePlayer = require('./state/player');
 
-Game.Multiplayer.Online.Role = (function (app, _, io) {
+module.exports = (function (app, _, io) {
 
   var playableEntities = ['ball1', 'ball2'];
 
@@ -14,8 +16,8 @@ Game.Multiplayer.Online.Role = (function (app, _, io) {
       this.ownPlayer = ownPlayer;
 
     _.without(playableEntities, this.ownPlayer).forEach(function(playableEntityName){
-      this.input = Game.Input.getEntityInput(app.root.findByName(playableEntityName));
-      this.input.setInputSource(new Game.Multiplayer.Online.InputSource(this.stateProxy, playableEntityName));
+      this.input = Input.getEntityInput(app.root.findByName(playableEntityName));
+      this.input.setInputSource(new OnlineInputSource(this.stateProxy, playableEntityName));
     }, this);
   };
 
@@ -33,7 +35,7 @@ Game.Multiplayer.Online.Role = (function (app, _, io) {
   var SlaveRole = function(stateBuffer, stateProxy, ownPlayer) {
     this.stateBuffer = stateBuffer;
     this.stateProxy = stateProxy;
-    this.statePlayer = new Game.Multiplayer.Online.State.Player();
+    this.statePlayer = new StatePlayer();
 
     this.onNewFrame = _.bind(this.onNewFrame, this);
 
@@ -42,8 +44,8 @@ Game.Multiplayer.Online.Role = (function (app, _, io) {
     else
       this.ownPlayer = ownPlayer;
 
-    this.input = Game.Input.getEntityInput(app.root.findByName(this.ownPlayer));
-    this.input.setInputSource(new Game.Input.KeyboardSource());
+    this.input = Input.getEntityInput(app.root.findByName(this.ownPlayer));
+    this.input.setInputSource(new Input.KeyboardSource());
 
     this.syncFrameTimer = null;
     this.syncFrameInterval = 0;
@@ -79,7 +81,7 @@ Game.Multiplayer.Online.Role = (function (app, _, io) {
     },
 
     getOwnInput: function() {
-      var commands = Game.Input.DirectionMap.DIRECTIONS,
+      var commands = Input.KeyboardSource.DirectionMap.DIRECTIONS,
           input = [];
 
       for (var i = 0; i < commands.length; i++) {

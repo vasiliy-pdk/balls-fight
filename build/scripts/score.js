@@ -1,4 +1,6 @@
 pc.script.create('score', function (app) {
+  var FrameStorable = bf.State.FrameStorable;
+
   // Creates a new Score instance
   var Score = function (entity) {
     this.entity = entity;
@@ -104,7 +106,7 @@ pc.script.create('score', function (app) {
         getState: _.bind(this.getState, this),
         restore: _.bind(this.restore, this)
       };
-      this.storable = Game.Multiplayer.Online.State.FrameStorable.factory(this.entity, storableConfig);
+      this.storable = FrameStorable.factory(this.entity, storableConfig);
     },
 
     getState: function() {

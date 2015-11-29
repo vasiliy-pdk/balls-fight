@@ -1,4 +1,6 @@
-Game.Multiplayer.Online.State.Buffer = (function(app, _, FrameStorable) {
+var FrameStorable = require('./storable').FrameStorable;
+
+module.exports = (function(app, _, FrameStorable) {
 
   // Creates a new GameStateBuffer instance
   var GameStateBuffer = function () {
@@ -56,4 +58,4 @@ Game.Multiplayer.Online.State.Buffer = (function(app, _, FrameStorable) {
 
   return GameStateBuffer;
 
-})(pc.Application.getApplication(), _, Game.Multiplayer.Online.State.FrameStorable);
+})(pc.Application.getApplication(), _, FrameStorable);
