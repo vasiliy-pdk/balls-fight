@@ -1,40 +1,37 @@
-var FrameStorable = require('./storable').FrameStorable;
+var app = require('../../../app'),
+    FrameStorable = require('./storable').FrameStorable;
 
-module.exports = (function(app, _, FrameStorable) {
+// GameStatePlayer replays a stored game state
+var GameStatePlayer = function (frames) {
+  this.frames = frames || [];
+  this.framesLeft = this.frames.length;
+};
 
-  // GameStatePlayer replays a stored game state
-  var GameStatePlayer = function (frames) {
-    this.frames = frames || [];
-    this.framesLeft = this.frames.length;
-  };
+GameStatePlayer.prototype = {
+  play: function (frames) {
+    if (frames) this.setFrames(frames);
 
-  GameStatePlayer.prototype = {
-    play: function (frames) {
-      if (frames) this.setFrames(frames);
+    if (!this.framesLeft) return;
 
-      if (!this.framesLeft) return;
+    this.playFrame();
 
-      this.playFrame();
+    this.framesLeft--;
+  },
 
-      this.framesLeft--;
-    },
+  playFrame: function () {
+    var frame = this.frames.shift();
 
-    playFrame: function () {
-      var frame = this.frames.shift();
+    frame.entities.forEach(function (entityState) {
+      var entity = app.root.findByName(entityState.name);
+      var storable = FrameStorable.factory(entity);
+      storable.restore(entityState);
+    }, this);
+  },
 
-      frame.entities.forEach(function (entityState) {
-        var entity = app.root.findByName(entityState.name);
-        var storable = FrameStorable.factory(entity);
-        storable.restore(entityState);
-      }, this);
-    },
+  setFrames: function (frames) {
+    this.frames = frames;
+    this.framesLeft = frames.length;
+  }
+};
 
-    setFrames: function (frames) {
-      this.frames = frames;
-      this.framesLeft = frames.length;
-    }
-  };
-
-  return GameStatePlayer;
-
-})(pc.Application.getApplication(), _, FrameStorable);
+module.exports = GameStatePlayer;
