@@ -387,10 +387,21 @@ Game.Multiplayer.Online.Role = (function (app, _, io) {
 Game.Multiplayer.Online.State = Game.Multiplayer.Online.State || {};
 
 Game.Multiplayer.Online.State = (function(app, _) {
+  var storablesRegistry = {};
 
-  var FrameStoreable = function(entity) {
+  var FrameStoreable = function(entity, config) {
     this.entity = entity;
     this.state = null;
+
+    if(config) {
+      if(config.getState) {
+        this.getState = config.getState;
+      }
+
+      if(config.restore) {
+        this.restore = config.restore;
+      }
+    }
   };
 
   FrameStoreable.prototype = {
@@ -420,8 +431,8 @@ Game.Multiplayer.Online.State = (function(app, _) {
     }
   };
 
-  var RigidBodyFrameStoreable = function(entity) {
-    FrameStoreable.call(this, entity);
+  var RigidBodyFrameStoreable = function(entity, config) {
+    FrameStoreable.call(this, entity, config);
   };
 
   // @TODO: Implement correct inheritance here
@@ -440,24 +451,25 @@ Game.Multiplayer.Online.State = (function(app, _) {
     }
   });
 
-  // @TODO: Use a private registry
-  FrameStoreable._registry = {};
-
-  FrameStoreable.factory = function (entity) {
-    var storeable = FrameStoreable._registry[entity.getName()];
+  FrameStoreable.factory = function (entity, config) {
+    var storeable = storablesRegistry[entity.getName()];
 
     if(!storeable) {
       if(entity.rigidbody && !entity.rigidbody.isStaticOrKinematic())
-        storeable = new RigidBodyFrameStoreable(entity);
+        storeable = new RigidBodyFrameStoreable(entity, config);
       else
-        storeable = new FrameStoreable(entity);
+        storeable = new FrameStoreable(entity, config);
 
-      FrameStoreable._registry[entity.getName()] = storeable;
+      storablesRegistry[entity.getName()] = storeable;
     }
 
     return storeable;
   };
 
+  FrameStoreable.getAll = function() {
+    return storablesRegistry;
+  };
+  
   return {
     FrameStoreable: FrameStoreable,
     RigidBodyFrameStoreable: RigidBodyFrameStoreable
@@ -478,15 +490,14 @@ Game.Multiplayer.Online.State.Buffer = (function(app, _, FrameStoreable) {
   GameStateBuffer.prototype = {
     // Called once after all resources are loaded and before the first update
     initialize: function () {
-      this.storables = [];
       this.frames = [];
-      this.initStoreables(this.getStorableNames());
+      this.initStorables(this.getStorableNames());
     },
 
-    initStoreables: function (names) {
+    initStorables: function (names) {
       names.forEach(function (name) {
         var entity = app.root.findByName(name);
-        this.storables.push(FrameStoreable.factory(entity));
+        FrameStoreable.factory(entity);
       }, this);
     },
 
@@ -497,7 +508,7 @@ Game.Multiplayer.Online.State.Buffer = (function(app, _, FrameStoreable) {
         entities: []
       };
 
-      this.storables.forEach(function (storable) {
+      this.getStorables().forEach(function (storable) {
         frame.entities.push(storable.getState());
       }, this);
 
@@ -506,6 +517,10 @@ Game.Multiplayer.Online.State.Buffer = (function(app, _, FrameStoreable) {
 
     flush: function() {
       this.frames = [];
+    },
+
+    getStorables: function() {
+      return _.values(FrameStoreable.getAll());
     },
 
     // @TODO: get from the config

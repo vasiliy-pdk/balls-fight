@@ -11,15 +11,14 @@ Game.Multiplayer.Online.State.Buffer = (function(app, _, FrameStoreable) {
   GameStateBuffer.prototype = {
     // Called once after all resources are loaded and before the first update
     initialize: function () {
-      this.storables = [];
       this.frames = [];
-      this.initStoreables(this.getStorableNames());
+      this.initStorables(this.getStorableNames());
     },
 
-    initStoreables: function (names) {
+    initStorables: function (names) {
       names.forEach(function (name) {
         var entity = app.root.findByName(name);
-        this.storables.push(FrameStoreable.factory(entity));
+        FrameStoreable.factory(entity);
       }, this);
     },
 
@@ -30,7 +29,7 @@ Game.Multiplayer.Online.State.Buffer = (function(app, _, FrameStoreable) {
         entities: []
       };
 
-      this.storables.forEach(function (storable) {
+      this.getStorables().forEach(function (storable) {
         frame.entities.push(storable.getState());
       }, this);
 
@@ -39,6 +38,10 @@ Game.Multiplayer.Online.State.Buffer = (function(app, _, FrameStoreable) {
 
     flush: function() {
       this.frames = [];
+    },
+
+    getStorables: function() {
+      return _.values(FrameStoreable.getAll());
     },
 
     // @TODO: get from the config
