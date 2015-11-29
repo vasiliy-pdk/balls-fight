@@ -177,208 +177,200 @@ module.exports = InputSource;
 
 
 },{}],7:[function(require,module,exports){
-var StateBuffer = require('./state/buffer');
-var roles = require('./role');
+var app = require('../../app'),
+    roles = require('./role'),
+    StateBuffer = require('./state/buffer');
 
-module.exports = (function (app, _, io) {
+var getServerUrl = function () {
+  var search = document.location.search,
+      serverUrl = 'http://shielded-scrubland-7178.herokuapp.com';
 
-  var getServerUrl = function () {
-    var search = document.location.search,
-        serverUrl = 'http://shielded-scrubland-7178.herokuapp.com';
+  // Run the game launched with local codebase on the local server by default.
+  // Add ?server=remote url argument to run on remote server
+  //
+  // Run the game launched with original codebase on the remote server by default.
+  // But allow to switch to the local one using ?server=local url argument
+  if (!search.match('server=remote') && (search.match('server=local') || search.match('local=')))
+    serverUrl = 'http://localhost:3000';
 
-    // Run the game launched with local codebase on the local server by default.
-    // Add ?server=remote url argument to run on remote server
-    //
-    // Run the game launched with original codebase on the remote server by default.
-    // But allow to switch to the local one using ?server=local url argument
-    if (!search.match('server=remote') && (search.match('server=local') || search.match('local=')))
-      serverUrl = 'http://localhost:3000';
+  return serverUrl;
+};
 
-    return serverUrl;
-  };
+OnlineMultiplayer = function () {
+  this.role = null;
+  this.stateBuffer = null;
+  this.stateProxy = null;
+};
 
-  OnlineMultiplayer = function () {
-    this.role = null;
-    this.stateBuffer = null;
-    this.stateProxy = null;
-  };
+OnlineMultiplayer.prototype = {
+  initialize: function () {
+    this.stateProxy = this.initStateProxy();
+    this.stateBuffer = this.initStateBuffer();
+  },
 
-  OnlineMultiplayer.prototype = {
-    initialize: function () {
-      this.stateProxy = this.initStateProxy();
-      this.stateBuffer = this.initStateBuffer();
-    },
+  initStateProxy: function () {
+    var socket = io(getServerUrl());
+    this.bindProxyHandlers(socket);
+    return socket;
+  },
 
-    initStateProxy: function () {
-      var socket = io(getServerUrl());
-      this.bindProxyHandlers(socket);
-      return socket;
-    },
+  initStateBuffer: function () {
+    var buffer = new StateBuffer();
+    buffer.initialize();
+    return buffer;
+  },
 
-    initStateBuffer: function () {
-      var buffer = new StateBuffer();
-      buffer.initialize();
-      return buffer;
-    },
+  bindProxyHandlers: function (proxy) {
+    var self = this;
+    proxy
+        .on('set-role', function (data) {
+          console.log('Setting role: ', data);
+          self.setRole(data.role, data.entityName);
+        })
+        .on('disconnect', function (data) {
+          console.log('Server disconnected', data);
+        })
+        .on('player-connected', function (data) {
+          console.log('Player connected: ', data.entityName);
+        })
+        .on('player-disconnected', function (data) {
+          console.log('Player disconnected: ', data.entityName);
+        });
+  },
 
-    bindProxyHandlers: function (proxy) {
-      var self = this;
-      proxy
-          .on('set-role', function (data) {
-            console.log('Setting role: ', data);
-            self.setRole(data.role, data.entityName);
-          })
-          .on('disconnect', function (data) {
-            console.log('Server disconnected', data);
-          })
-          .on('player-connected', function (data) {
-            console.log('Player connected: ', data.entityName);
-          })
-          .on('player-disconnected', function (data) {
-            console.log('Player disconnected: ', data.entityName);
-          });
-    },
-
-    newRole: function (role, ownPlayer) {
-      var roleClass;
-      if (role === 'master') {
-        roleClass = 'Master';
-      } else {
-        roleClass = 'Slave';
-      }
-
-      return new roles[roleClass](this.stateBuffer, this.stateProxy, ownPlayer);
-    },
-
-    setRole: function (role, entityName) {
-      if (this.role) {
-        if (this.role.name === role) return;
-        this.role.unbindProxyHandlers(this.stateProxy);
-        this.role = null;
-      }
-
-      this.role = this.newRole(role, entityName);
-      this.role.bindProxyHandlers(this.stateProxy);
-    },
-
-    update: function (dt) {
-      if (this.role) this.role.update(dt);
+  newRole: function (role, ownPlayer) {
+    var roleClass;
+    if (role === 'master') {
+      roleClass = 'Master';
+    } else {
+      roleClass = 'Slave';
     }
-  };
 
-  return OnlineMultiplayer;
-})(pc.Application.getApplication(), _, io);
+    return new roles[roleClass](this.stateBuffer, this.stateProxy, ownPlayer);
+  },
 
-},{"./role":8,"./state/buffer":9}],8:[function(require,module,exports){
-var Input = require('../../input');
-var OnlineInputSource = require('../../input/source/online');
-var StatePlayer = require('./state/player');
-
-module.exports = (function (app, _, io) {
-
-  var playableEntities = ['ball1', 'ball2'];
-
-  var MasterRole = function(stateBuffer, stateProxy, ownPlayer) {
-    this.stateBuffer = stateBuffer;
-    this.stateProxy = stateProxy;
-
-    if(!ownPlayer)
-      this.ownPlayer = playableEntities[0];
-    else
-      this.ownPlayer = ownPlayer;
-
-    _.without(playableEntities, this.ownPlayer).forEach(function(playableEntityName){
-      this.input = Input.getEntityInput(app.root.findByName(playableEntityName));
-      this.input.setInputSource(new OnlineInputSource(this.stateProxy, playableEntityName));
-    }, this);
-  };
-
-  MasterRole.prototype = {
-    bindProxyHandlers: function(proxy) {},
-    unbindProxyHandlers: function(proxy) {},
-
-    update: function(dt) {
-      this.stateBuffer.storeFrame(dt);
-      this.stateProxy.emit('tick', this.stateBuffer.frames);
-      this.stateBuffer.flush();
+  setRole: function (role, entityName) {
+    if (this.role) {
+      if (this.role.name === role) return;
+      this.role.unbindProxyHandlers(this.stateProxy);
+      this.role = null;
     }
-  };
 
-  var SlaveRole = function(stateBuffer, stateProxy, ownPlayer) {
-    this.stateBuffer = stateBuffer;
-    this.stateProxy = stateProxy;
-    this.statePlayer = new StatePlayer();
+    this.role = this.newRole(role, entityName);
+    this.role.bindProxyHandlers(this.stateProxy);
+  },
 
-    this.onNewFrame = _.bind(this.onNewFrame, this);
+  update: function (dt) {
+    if (this.role) this.role.update(dt);
+  }
+};
 
-    if(!ownPlayer)
-      this.ownPlayer = playableEntities[1];
-    else
-      this.ownPlayer = ownPlayer;
+module.exports = OnlineMultiplayer;
 
-    this.input = Input.getEntityInput(app.root.findByName(this.ownPlayer));
-    this.input.setInputSource(new Input.KeyboardSource());
+},{"../../app":1,"./role":8,"./state/buffer":9}],8:[function(require,module,exports){
+var app = require('../../app'),
+    Input = require('../../input'),
+    OnlineInputSource = require('../../input/source/online'),
+    StatePlayer = require('./state/player'),
+    playableEntities = ['ball1', 'ball2'];
 
-    this.syncFrameTimer = null;
-    this.syncFrameInterval = 0;
-    this.lastFrames = null;
-  };
+var MasterRole = function(stateBuffer, stateProxy, ownPlayer) {
+  this.stateBuffer = stateBuffer;
+  this.stateProxy = stateProxy;
 
-  SlaveRole.prototype = {
-    bindProxyHandlers: function(proxy) {
-      proxy.on('new_frame', this.onNewFrame);
-    },
+  if(!ownPlayer)
+    this.ownPlayer = playableEntities[0];
+  else
+    this.ownPlayer = ownPlayer;
 
-    unbindProxyHandlers: function(proxy) {
-      proxy.removeListener('new_frame', this.onNewFrame);
-    },
+  _.without(playableEntities, this.ownPlayer).forEach(function(playableEntityName){
+    this.input = Input.getEntityInput(app.root.findByName(playableEntityName));
+    this.input.setInputSource(new OnlineInputSource(this.stateProxy, playableEntityName));
+  }, this);
+};
 
-    update: function(dt) {
-      this.sendOwnInput();
+MasterRole.prototype = {
+  bindProxyHandlers: function(proxy) {},
+  unbindProxyHandlers: function(proxy) {},
 
-      if((this.syncFrameTimer >= this.syncFrameInterval && this.lastFrames) || this.syncFrameTimer === null) {
-        this.statePlayer.play(this.lastFrames);
-        this.syncFrameTimer = 0;
-        this.lastFrames = null;
-      } else {
-        this.syncFrameTimer += dt;
-      }
-    },
+  update: function(dt) {
+    this.stateBuffer.storeFrame(dt);
+    this.stateProxy.emit('tick', this.stateBuffer.frames);
+    this.stateBuffer.flush();
+  }
+};
 
-    sendOwnInput: function() {
-      this.stateProxy.emit('frame-input', {
-        from: this.ownPlayer,
-        frame: this.getOwnInput()
-      });
-    },
+var SlaveRole = function(stateBuffer, stateProxy, ownPlayer) {
+  this.stateBuffer = stateBuffer;
+  this.stateProxy = stateProxy;
+  this.statePlayer = new StatePlayer();
 
-    getOwnInput: function() {
-      var commands = Input.KeyboardSource.DirectionMap.DIRECTIONS,
-          input = [];
+  this.onNewFrame = _.bind(this.onNewFrame, this);
 
-      for (var i = 0; i < commands.length; i++) {
-        var command = commands[i];
-        if(this.input.isApplied(command))
-          input.push(command);
-      }
+  if(!ownPlayer)
+    this.ownPlayer = playableEntities[1];
+  else
+    this.ownPlayer = ownPlayer;
 
-      return input;
-    },
+  this.input = Input.getEntityInput(app.root.findByName(this.ownPlayer));
+  this.input.setInputSource(new Input.KeyboardSource());
 
-    onNewFrame: function(data) {
-      //this.statePlayer.play(data.frames);
-      this.lastFrames = data.frames;
+  this.syncFrameTimer = null;
+  this.syncFrameInterval = 0;
+  this.lastFrames = null;
+};
+
+SlaveRole.prototype = {
+  bindProxyHandlers: function(proxy) {
+    proxy.on('new_frame', this.onNewFrame);
+  },
+
+  unbindProxyHandlers: function(proxy) {
+    proxy.removeListener('new_frame', this.onNewFrame);
+  },
+
+  update: function(dt) {
+    this.sendOwnInput();
+
+    if((this.syncFrameTimer >= this.syncFrameInterval && this.lastFrames) || this.syncFrameTimer === null) {
+      this.statePlayer.play(this.lastFrames);
+      this.syncFrameTimer = 0;
+      this.lastFrames = null;
+    } else {
+      this.syncFrameTimer += dt;
     }
-  };
+  },
 
-  return {
-    Master: MasterRole,
-    Slave: SlaveRole
-  };
+  sendOwnInput: function() {
+    this.stateProxy.emit('frame-input', {
+      from: this.ownPlayer,
+      frame: this.getOwnInput()
+    });
+  },
 
-})(pc.Application.getApplication(), _);
+  getOwnInput: function() {
+    var commands = Input.KeyboardSource.DirectionMap.DIRECTIONS,
+        input = [];
 
-},{"../../input":3,"../../input/source/online":6,"./state/player":10}],9:[function(require,module,exports){
+    for (var i = 0; i < commands.length; i++) {
+      var command = commands[i];
+      if(this.input.isApplied(command))
+        input.push(command);
+    }
+
+    return input;
+  },
+
+  onNewFrame: function(data) {
+    //this.statePlayer.play(data.frames);
+    this.lastFrames = data.frames;
+  }
+};
+
+exports.Master = MasterRole;
+exports.Slave = SlaveRole;
+
+},{"../../app":1,"../../input":3,"../../input/source/online":6,"./state/player":10}],9:[function(require,module,exports){
 var FrameStorable = require('./storable').FrameStorable;
 
 module.exports = (function(app, _, FrameStorable) {
