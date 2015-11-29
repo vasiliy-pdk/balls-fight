@@ -1,4 +1,4 @@
-Game.Multiplayer.Online.State.Buffer = (function(app, _, FrameStoreable) {
+Game.Multiplayer.Online.State.Buffer = (function(app, _, FrameStorable) {
 
   // Creates a new GameStateBuffer instance
   var GameStateBuffer = function () {
@@ -18,7 +18,7 @@ Game.Multiplayer.Online.State.Buffer = (function(app, _, FrameStoreable) {
     initStorables: function (names) {
       names.forEach(function (name) {
         var entity = app.root.findByName(name);
-        FrameStoreable.factory(entity);
+        FrameStorable.factory(entity);
       }, this);
     },
 
@@ -41,7 +41,7 @@ Game.Multiplayer.Online.State.Buffer = (function(app, _, FrameStoreable) {
     },
 
     getStorables: function() {
-      return _.values(FrameStoreable.getAll());
+      return _.values(FrameStorable.getAll());
     },
 
     // @TODO: get from the config
@@ -56,4 +56,4 @@ Game.Multiplayer.Online.State.Buffer = (function(app, _, FrameStoreable) {
 
   return GameStateBuffer;
 
-})(pc.Application.getApplication(), _, Game.Multiplayer.Online.State.FrameStoreable);
+})(pc.Application.getApplication(), _, Game.Multiplayer.Online.State.FrameStorable);

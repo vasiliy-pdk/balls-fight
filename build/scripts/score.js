@@ -104,7 +104,7 @@ pc.script.create('score', function (app) {
         getState: _.bind(this.getState, this),
         restore: _.bind(this.restore, this)
       };
-      this.storable = Game.Multiplayer.Online.State.FrameStoreable.factory(this.entity, storableConfig);
+      this.storable = Game.Multiplayer.Online.State.FrameStorable.factory(this.entity, storableConfig);
     },
 
     getState: function() {

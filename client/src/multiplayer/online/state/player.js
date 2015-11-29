@@ -1,4 +1,4 @@
-Game.Multiplayer.Online.State.Player = (function(app, _, FrameStoreable) {
+Game.Multiplayer.Online.State.Player = (function(app, _, FrameStorable) {
 
   // GameStatePlayer replays a stored game state
   var GameStatePlayer = function (frames) {
@@ -22,8 +22,8 @@ Game.Multiplayer.Online.State.Player = (function(app, _, FrameStoreable) {
 
       frame.entities.forEach(function (entityState) {
         var entity = app.root.findByName(entityState.name);
-        var storeable = FrameStoreable.factory(entity);
-        storeable.restore(entityState);
+        var storable = FrameStorable.factory(entity);
+        storable.restore(entityState);
       }, this);
     },
 
@@ -35,4 +35,4 @@ Game.Multiplayer.Online.State.Player = (function(app, _, FrameStoreable) {
 
   return GameStatePlayer;
 
-})(pc.Application.getApplication(), _, Game.Multiplayer.Online.State.FrameStoreable);
+})(pc.Application.getApplication(), _, Game.Multiplayer.Online.State.FrameStorable);

@@ -389,7 +389,7 @@ Game.Multiplayer.Online.State = Game.Multiplayer.Online.State || {};
 Game.Multiplayer.Online.State = (function(app, _) {
   var storablesRegistry = {};
 
-  var FrameStoreable = function(entity, config) {
+  var FrameStorable = function(entity, config) {
     this.entity = entity;
     this.state = null;
 
@@ -404,7 +404,7 @@ Game.Multiplayer.Online.State = (function(app, _) {
     }
   };
 
-  FrameStoreable.prototype = {
+  FrameStorable.prototype = {
     store: function() {
       this.state = this.getState();
     },
@@ -431,14 +431,14 @@ Game.Multiplayer.Online.State = (function(app, _) {
     }
   };
 
-  var RigidBodyFrameStoreable = function(entity, config) {
-    FrameStoreable.call(this, entity, config);
+  var RigidBodyFrameStorable = function(entity, config) {
+    FrameStorable.call(this, entity, config);
   };
 
   // @TODO: Implement correct inheritance here
-  _.extend(RigidBodyFrameStoreable.prototype, FrameStoreable.prototype, {
+  _.extend(RigidBodyFrameStorable.prototype, FrameStorable.prototype, {
     getState: function() {
-      var state = FrameStoreable.prototype.getState.apply(this);
+      var state = FrameStorable.prototype.getState.apply(this);
       state.linearVelocity = this.storeVector(this.entity.rigidbody.linearVelocity);
       state.angularVelocity = this.storeVector(this.entity.rigidbody.angularVelocity);
       return state;
@@ -451,33 +451,33 @@ Game.Multiplayer.Online.State = (function(app, _) {
     }
   });
 
-  FrameStoreable.factory = function (entity, config) {
-    var storeable = storablesRegistry[entity.getName()];
+  FrameStorable.factory = function (entity, config) {
+    var storable = storablesRegistry[entity.getName()];
 
-    if(!storeable) {
+    if(!storable) {
       if(entity.rigidbody && !entity.rigidbody.isStaticOrKinematic())
-        storeable = new RigidBodyFrameStoreable(entity, config);
+        storable = new RigidBodyFrameStorable(entity, config);
       else
-        storeable = new FrameStoreable(entity, config);
+        storable = new FrameStorable(entity, config);
 
-      storablesRegistry[entity.getName()] = storeable;
+      storablesRegistry[entity.getName()] = storable;
     }
 
-    return storeable;
+    return storable;
   };
 
-  FrameStoreable.getAll = function() {
+  FrameStorable.getAll = function() {
     return storablesRegistry;
   };
   
   return {
-    FrameStoreable: FrameStoreable,
-    RigidBodyFrameStoreable: RigidBodyFrameStoreable
+    FrameStorable: FrameStorable,
+    RigidBodyFrameStorable: RigidBodyFrameStorable
   };
 
 })(pc.Application.getApplication(), _);
 
-Game.Multiplayer.Online.State.Buffer = (function(app, _, FrameStoreable) {
+Game.Multiplayer.Online.State.Buffer = (function(app, _, FrameStorable) {
 
   // Creates a new GameStateBuffer instance
   var GameStateBuffer = function () {
@@ -497,7 +497,7 @@ Game.Multiplayer.Online.State.Buffer = (function(app, _, FrameStoreable) {
     initStorables: function (names) {
       names.forEach(function (name) {
         var entity = app.root.findByName(name);
-        FrameStoreable.factory(entity);
+        FrameStorable.factory(entity);
       }, this);
     },
 
@@ -520,7 +520,7 @@ Game.Multiplayer.Online.State.Buffer = (function(app, _, FrameStoreable) {
     },
 
     getStorables: function() {
-      return _.values(FrameStoreable.getAll());
+      return _.values(FrameStorable.getAll());
     },
 
     // @TODO: get from the config
@@ -535,9 +535,9 @@ Game.Multiplayer.Online.State.Buffer = (function(app, _, FrameStoreable) {
 
   return GameStateBuffer;
 
-})(pc.Application.getApplication(), _, Game.Multiplayer.Online.State.FrameStoreable);
+})(pc.Application.getApplication(), _, Game.Multiplayer.Online.State.FrameStorable);
 
-Game.Multiplayer.Online.State.Player = (function(app, _, FrameStoreable) {
+Game.Multiplayer.Online.State.Player = (function(app, _, FrameStorable) {
 
   // GameStatePlayer replays a stored game state
   var GameStatePlayer = function (frames) {
@@ -561,8 +561,8 @@ Game.Multiplayer.Online.State.Player = (function(app, _, FrameStoreable) {
 
       frame.entities.forEach(function (entityState) {
         var entity = app.root.findByName(entityState.name);
-        var storeable = FrameStoreable.factory(entity);
-        storeable.restore(entityState);
+        var storable = FrameStorable.factory(entity);
+        storable.restore(entityState);
       }, this);
     },
 
@@ -574,4 +574,4 @@ Game.Multiplayer.Online.State.Player = (function(app, _, FrameStoreable) {
 
   return GameStatePlayer;
 
-})(pc.Application.getApplication(), _, Game.Multiplayer.Online.State.FrameStoreable);
+})(pc.Application.getApplication(), _, Game.Multiplayer.Online.State.FrameStorable);
