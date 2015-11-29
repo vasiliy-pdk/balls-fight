@@ -526,9 +526,9 @@ Game.Multiplayer.Online.State.Buffer = (function(app, _, FrameStorable) {
     // @TODO: get from the config
     getStorableNames: function () {
       var names = ['ball1', 'ball2', 'teleport-b'];
-//             _.range(1, 10).forEach(function (id) {
-//                 names.push('wooden-crate-' + id);
-//             });
+      _.range(1, 3).forEach(function (id) {
+         names.push('wooden-crate-' + id);
+      });
       return names;
     }
   };
