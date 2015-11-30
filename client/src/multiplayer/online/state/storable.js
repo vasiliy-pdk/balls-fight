@@ -1,4 +1,5 @@
-var storablesRegistry = {};
+var util = require('util'),
+    storablesRegistry = {};
 
 var FrameStorable = function(entity, config) {
   this.entity = entity;
@@ -46,21 +47,20 @@ var RigidBodyFrameStorable = function(entity, config) {
   FrameStorable.call(this, entity, config);
 };
 
-// @TODO: Implement correct inheritance here
-_.extend(RigidBodyFrameStorable.prototype, FrameStorable.prototype, {
-  getState: function() {
-    var state = FrameStorable.prototype.getState.apply(this);
-    state.linearVelocity = this.storeVector(this.entity.rigidbody.linearVelocity);
-    state.angularVelocity = this.storeVector(this.entity.rigidbody.angularVelocity);
-    return state;
-  },
+util.inherits(RigidBodyFrameStorable, FrameStorable);
 
-  restore: function(state) {
-    this.entity.rigidbody.teleport(this.restoreVector(state.position), this.restoreVector(state.rotation));
-    this.entity.rigidbody.linearVelocity = this.restoreVector(state.linearVelocity);
-    this.entity.rigidbody.angularVelocity = this.restoreVector(state.angularVelocity);
-  }
-});
+RigidBodyFrameStorable.prototype.getState = function() {
+  var state = FrameStorable.prototype.getState.apply(this);
+  state.linearVelocity = this.storeVector(this.entity.rigidbody.linearVelocity);
+  state.angularVelocity = this.storeVector(this.entity.rigidbody.angularVelocity);
+  return state;
+};
+
+RigidBodyFrameStorable.prototype.restore = function(state) {
+  this.entity.rigidbody.teleport(this.restoreVector(state.position), this.restoreVector(state.rotation));
+  this.entity.rigidbody.linearVelocity = this.restoreVector(state.linearVelocity);
+  this.entity.rigidbody.angularVelocity = this.restoreVector(state.angularVelocity);
+};
 
 FrameStorable.factory = function (entity, config) {
   var storable = storablesRegistry[entity.getName()];
