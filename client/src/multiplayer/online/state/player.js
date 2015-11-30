@@ -1,5 +1,5 @@
 var app = require('../../../app'),
-    FrameStorable = require('./storable').FrameStorable;
+    storables = require('./storable');
 
 // GameStatePlayer replays a stored game state
 var GameStatePlayer = function (frames) {
@@ -23,7 +23,7 @@ GameStatePlayer.prototype = {
 
     frame.entities.forEach(function (entityState) {
       var entity = app.root.findByName(entityState.name);
-      var storable = FrameStorable.factory(entity);
+      var storable = storables.factory(entity);
       storable.restore(entityState);
     }, this);
   },

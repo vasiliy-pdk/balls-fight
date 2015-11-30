@@ -1,5 +1,5 @@
 pc.script.create('score', function (app) {
-  var FrameStorable = bf.State.FrameStorable;
+  var storableFactory = bf.StateStorable.factory;
 
   // Creates a new Score instance
   var Score = function (entity) {
@@ -106,7 +106,7 @@ pc.script.create('score', function (app) {
         getState: _.bind(this.getState, this),
         restore: _.bind(this.restore, this)
       };
-      this.storable = FrameStorable.factory(this.entity, storableConfig);
+      this.storable = storableFactory(this.entity, storableConfig);
     },
 
     getState: function() {

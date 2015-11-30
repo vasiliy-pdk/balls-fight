@@ -1,5 +1,5 @@
 var app = require('../../../app'),
-    FrameStorable = require('./storable').FrameStorable;
+    storables = require('./storable');
 
 // Creates a new GameStateBuffer instance
 var GameStateBuffer = function () {
@@ -16,7 +16,7 @@ GameStateBuffer.prototype = {
   initStorables: function (names) {
     names.forEach(function (name) {
       var entity = app.root.findByName(name);
-      FrameStorable.factory(entity);
+      storables.factory(entity);
     }, this);
   },
 
@@ -39,7 +39,7 @@ GameStateBuffer.prototype = {
   },
 
   getStorables: function() {
-    return _.values(FrameStorable.getAll());
+    return _.values(storables.getAll());
   },
 
   // @TODO: get from the config

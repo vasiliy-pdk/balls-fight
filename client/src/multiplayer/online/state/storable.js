@@ -62,7 +62,7 @@ RigidBodyFrameStorable.prototype.restore = function(state) {
   this.entity.rigidbody.angularVelocity = this.restoreVector(state.angularVelocity);
 };
 
-FrameStorable.factory = function (entity, config) {
+exports.factory = function (entity, config) {
   var storable = storablesRegistry[entity.getName()];
 
   if(!storable) {
@@ -77,7 +77,7 @@ FrameStorable.factory = function (entity, config) {
   return storable;
 };
 
-FrameStorable.getAll = function() {
+exports.getAll = function() {
   return storablesRegistry;
 };
   

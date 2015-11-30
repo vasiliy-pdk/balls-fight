@@ -12,7 +12,7 @@ module.exports = pc.Application.getApplication();
 
 },{}],2:[function(require,module,exports){
 exports.Input = require('./input');
-exports.State = require('./multiplayer/online/state/storable');
+exports.StateStorable = require('./multiplayer/online/state/storable');
 exports.OnlineMultiplayer = require('./multiplayer/online/game');
 
 },{"./input":3,"./multiplayer/online/game":7,"./multiplayer/online/state/storable":11}],3:[function(require,module,exports){
@@ -372,7 +372,7 @@ exports.Slave = SlaveRole;
 
 },{"../../app":1,"../../input":3,"../../input/source/online":6,"./state/player":10}],9:[function(require,module,exports){
 var app = require('../../../app'),
-    FrameStorable = require('./storable').FrameStorable;
+    storables = require('./storable');
 
 // Creates a new GameStateBuffer instance
 var GameStateBuffer = function () {
@@ -389,7 +389,7 @@ GameStateBuffer.prototype = {
   initStorables: function (names) {
     names.forEach(function (name) {
       var entity = app.root.findByName(name);
-      FrameStorable.factory(entity);
+      storables.factory(entity);
     }, this);
   },
 
@@ -412,7 +412,7 @@ GameStateBuffer.prototype = {
   },
 
   getStorables: function() {
-    return _.values(FrameStorable.getAll());
+    return _.values(storables.getAll());
   },
 
   // @TODO: get from the config
@@ -429,7 +429,7 @@ module.exports = GameStateBuffer;
 
 },{"../../../app":1,"./storable":11}],10:[function(require,module,exports){
 var app = require('../../../app'),
-    FrameStorable = require('./storable').FrameStorable;
+    storables = require('./storable');
 
 // GameStatePlayer replays a stored game state
 var GameStatePlayer = function (frames) {
@@ -453,7 +453,7 @@ GameStatePlayer.prototype = {
 
     frame.entities.forEach(function (entityState) {
       var entity = app.root.findByName(entityState.name);
-      var storable = FrameStorable.factory(entity);
+      var storable = storables.factory(entity);
       storable.restore(entityState);
     }, this);
   },
@@ -531,7 +531,7 @@ RigidBodyFrameStorable.prototype.restore = function(state) {
   this.entity.rigidbody.angularVelocity = this.restoreVector(state.angularVelocity);
 };
 
-FrameStorable.factory = function (entity, config) {
+exports.factory = function (entity, config) {
   var storable = storablesRegistry[entity.getName()];
 
   if(!storable) {
@@ -546,7 +546,7 @@ FrameStorable.factory = function (entity, config) {
   return storable;
 };
 
-FrameStorable.getAll = function() {
+exports.getAll = function() {
   return storablesRegistry;
 };
   
