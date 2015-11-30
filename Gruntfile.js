@@ -20,23 +20,17 @@ module.exports = function(grunt) {
       }
     },
 
-    clean: ['build/balls-fight.js', 'build/scripts/*'],
+    clean: ['build/balls-fight.js', 'build/tmp' ,'build/scripts/*'],
 
     browserify: {
       bf: {
         options:{
           browserifyOptions: {
-            //require: [
-            //  './client/src/multiplayer/online/game', './client/src/input/directionMap',
-            //  './client/src/input/input', './client/src/multiplayer/online/state/storable'
-            //],
             standalone: 'bf'
           },
         },
         src: ['client/src/balls-fight.js'],
-        //src: ['client/src/multiplayer/online/game', 'client/src/input/directionMap',
-        //  'client/src/input/input', 'client/src/multiplayer/online/state/storable'],
-        dest: 'build/balls-fight.js'
+        dest: 'build/tmp/balls-fight.js'
       }
     },
 
@@ -45,17 +39,7 @@ module.exports = function(grunt) {
         // the files to concatenate
         src: [
           'client/libs/**/*.js',
-          'build/balls-fight.js'
-
-          //'client/src/Game.js',
-          //'client/src/input/input.js',
-          //'client/src/input/directionMap.js',
-          //'client/src/multiplayer/online/game.js',
-          //'client/src/multiplayer/online/input.js',
-          //'client/src/multiplayer/online/role.js',
-          //'client/src/multiplayer/online/state/storable.js',
-          //'client/src/multiplayer/online/state/buffer.js',
-          //'client/src/multiplayer/online/state/player.js'
+          'build/tmp/balls-fight.js'
         ],
         // the location of the resulting JS file
         dest: 'build/scripts/<%= pkg.name %>.js'
