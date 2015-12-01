@@ -43,17 +43,17 @@ _.extend(Ui.prototype, {
   },
 
   startLoading: function() {
-
+    $('#loader').show();
   },
 
   stopLoading: function() {
-
+    $('#loader').hide();
   },
 
   showModal: function(contentId, actionText, onAction) {
     var self = this;
     actionText = actionText || 'Ok';
-    this._hiddenByModal = $('.overlay').not('#modal');
+    this._hiddenByModal = $('.overlay').not('#modal, #loader');
     $('#modal-content').html($(contentId).html());
     $('#modal-action').one('click', function() {
       self.hideModal();

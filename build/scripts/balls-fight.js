@@ -225,13 +225,14 @@ _.extend(Launcher.prototype, {
   },
 
   launchMainMenu: function() {
+    this.ui.startLoading();
     var sceneId = 395430,
         url = sceneId + '.json',
         self = this;
 
     this.app.loadScene(url, function() {
       self.ui.showMainMenu();
-      console.log('Main menu loaded');
+      self.ui.stopLoading();
     });
   },
 
@@ -244,14 +245,14 @@ _.extend(Launcher.prototype, {
   },
 
   launchOnlineMultiplayer: function() {
+    this.ui.startLoading();
     var sceneId = 394962,
         url = sceneId + '.json',
         self = this;
-
     this.app.loadScene(url, function() {
       // show progress somewhere
       self.ui.hideMainMenu();
-      console.log('Online multiplayer loaded');
+      self.ui.stopLoading();
     });
   }
 });
@@ -708,17 +709,17 @@ _.extend(Ui.prototype, {
   },
 
   startLoading: function() {
-
+    $('#loader').show();
   },
 
   stopLoading: function() {
-
+    $('#loader').hide();
   },
 
   showModal: function(contentId, actionText, onAction) {
     var self = this;
     actionText = actionText || 'Ok';
-    this._hiddenByModal = $('.overlay').not('#modal');
+    this._hiddenByModal = $('.overlay').not('#modal, #loader');
     $('#modal-content').html($(contentId).html());
     $('#modal-action').one('click', function() {
       self.hideModal();

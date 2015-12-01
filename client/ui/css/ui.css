@@ -39,7 +39,7 @@
 .main-menu ul li:hover
 {
     /*list-style: disc outside;*/
-    color: #F03ED6;
+    color: #f03ed6;
 }
 
 #modal {
@@ -65,9 +65,40 @@
 }
 
 #modal-action:hover {
-    color: #F03ED6;
+    color: #f03ed6;
 }
 
 #modals-contents {
     display: none;
+}
+
+@keyframes loader {
+    0% {
+        color: #000;
+    }
+
+    50% {
+        color: #f03ed6;
+    }
+
+    100% {
+        color: #000;
+    }
+}
+
+#loader {
+    animation-duration: 750ms;
+    animation-iteration-count: infinite;
+    animation-name: loader;
+
+    display: none;
+    font-size: 26px;
+    font-weight: bold;
+    padding: 12px;
+    text-align: center;
+
+    width: 300px;
+    left: 50%;
+    top: 50%;
+    margin:-16px 0 0 -150px;
 }
