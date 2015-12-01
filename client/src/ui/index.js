@@ -120,10 +120,6 @@ _.extend(Ui.prototype, {
     $('#show-how-to').click(function() {
       self.showModal('#rules-content');
     });
-
-    $('#start-local').click(function() {
-      self.showModal('#training-content');
-    });
   }
 });
 

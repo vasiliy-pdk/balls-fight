@@ -55,7 +55,15 @@ _.extend(Launcher.prototype, {
   },
 
   launchLocalMultiplayer: function() {
+    this.ui.startLoading();
+    var sceneId = 395741,
+        url = sceneId + '.json',
+        self = this;
 
+    this.app.loadScene(url, function() {
+      self.ui.hideMainMenu();
+      self.ui.stopLoading();
+    });
   },
 
   launchOnlineMultiplayer: function() {
