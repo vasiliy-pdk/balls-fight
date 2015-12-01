@@ -715,6 +715,24 @@ _.extend(Ui.prototype, {
 
   },
 
+  showModal: function(contentId, actionText, onAction) {
+    var self = this;
+    actionText = actionText || 'Ok';
+    this._hiddenByModal = $('.overlay').not('#modal');
+    $('#modal-content').html($(contentId).html());
+    $('#modal-action').one('click', function() {
+      self.hideModal();
+      if(onAction) onAction();
+    }).html(actionText);
+    this._hiddenByModal.hide();
+    $('#modal').show();
+  },
+
+  hideModal: function() {
+    $('#modal').hide();
+    this._hiddenByModal.show();
+  },
+
   showMainMenu: function () {
     $('.main-menu').show();
   },
@@ -754,6 +772,22 @@ _.extend(Ui.prototype, {
       }
 
       self.fire(action);
+    });
+
+    $('#show-credits').click(function() {
+      self.showModal('#about-content');
+    });
+
+    $('#start-training').click(function() {
+      self.showModal('#training-content');
+    });
+
+    $('#show-how-to').click(function() {
+      self.showModal('#rules-content');
+    });
+
+    $('#start-local').click(function() {
+      self.showModal('#training-content');
     });
   }
 });

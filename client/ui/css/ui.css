@@ -41,3 +41,33 @@
     /*list-style: disc outside;*/
     color: #F03ED6;
 }
+
+#modal {
+    display: none;
+    left: 25%;
+    top: 25%;
+    width: 50%;
+    height: 50%;
+    z-index: 110;
+}
+
+#modal .actions {
+    position: absolute;
+    text-align: right;
+    top: 90%;
+}
+
+#modal-action {
+    cursor: pointer;
+    font-size: 26px;
+    font-weight: bold;
+    padding: 5px;
+}
+
+#modal-action:hover {
+    color: #F03ED6;
+}
+
+#modals-contents {
+    display: none;
+}

@@ -1,9 +1,62 @@
 <div class="main-menu overlay">
   <h1>Balls Fight</h1>
   <ul>
-    <li id="start-local" class="js-launcher-action">Local Multiplayer</li>
     <li id="start-online" class="js-launcher-action">Online Multiplayer</li>
+    <li id="start-local" class="js-launcher-action">Local Multiplayer</li>
     <li id="start-training" class="js-launcher-action">Training</li>
-    <li id="show-credits">Credits</li>
+    <li id="show-how-to">How to play?</li>
+    <li id="show-credits">About</li>
   </ul>
+</div>
+
+
+<div id="modal" class="overlay">
+  <div id="modal-content"></div>
+  <div class="actions">
+    <span id="modal-action"></span>
+  </div>
+</div>
+
+<div id="modals-contents">
+  <div id="about-content">
+    <p><i>Programming, Idea:</i> <a href="http://github.com/vasiliy-pdk">Vasyl Pedak</a> (vasiliy.pedak at gmail.com)</p>
+    <p><i>Level design, 3D Art:</i> Dasha Pedak</p>
+    <p><i>Sounds and music:</i> http://freesfx.co.uk</p>
+    <p><b>About multiplayer:</b></p>
+
+    <p>There is one Master player. His browser gets input from the server, processes it and send serialized scene data back.
+      Not scene is serialized, but only specified entities.
+      Others are Slaves. Their browsers just send input to the Master and render gotten scene.
+      Server ( Node.js ) is just a proxy for input and scene data. It also controls who will be a Master, and switches the
+      role to another player if master is disconnected.
+    </p>
+
+    <p><i>Why have I decided to go in that way?</i></p>
+
+    <p>
+      This way is very easy to implement. You don't have to double game logic on the server side. You just have to specify
+      what do you want to sync and how often. That's it.
+
+      But it has drawbacks in the current state. It's more affected by network delays because data between Master and Slave should travel one
+      more extra node.
+    </p>
+
+    <p>
+      The next serious step is to make Playcanvas available to run right on the server without graphics. It will be the Master. It will
+      process all game logic and physics. And there will be the same codebase.
+    </p>
+
+    <p><a href="http://github.com/vasiliy-pdk/balls-fight">Source code</a></p>
+  </div>
+
+  <div id="training-content">
+    <p>Coming soon...</p>
+  </div>
+
+  <div id="rules-content">
+    <p>You should hit with your ball to the blue target. If you push away your opponent from the ring you will get extra score.
+      If you fall from the ring, you loose your score.
+    </p>
+    <p>Use arrows to control your ball.</p>
+  </div>
 </div>
