@@ -1,0 +1,43 @@
+.overlay {
+    position: absolute;
+    z-index: 101;
+
+    background-color: rgba(255, 255, 255, 1);
+    background-blend-mode: normal;
+    border-radius: 15px;
+    padding: 25px;
+    opacity: 0.5;
+}
+
+.main-menu {
+    left: 25%;
+    top: 15%;
+    text-align: center;
+}
+
+.main-menu h1 {
+    color: #F03ED6;
+    margin: 0;
+    margin-bottom: 20px;
+    font-size: 38px;
+}
+
+.main-menu ul {
+    margin: 0;
+    padding: 0;
+}
+
+.main-menu ul li {
+    cursor: pointer;
+    font-size: 26px;
+    font-weight: bold;
+    list-style: none;
+    padding: 5px;
+}
+
+.main-menu ul.active,
+.main-menu ul li:hover
+{
+    /*list-style: disc outside;*/
+    color: #F03ED6;
+}

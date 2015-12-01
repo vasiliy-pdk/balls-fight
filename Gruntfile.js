@@ -35,6 +35,10 @@ module.exports = function(grunt) {
     },
 
     concat: {
+      css: {
+        src: ['client/ui/css/**/*.css'],
+        dest: 'build/css/ui.css'
+      },
       dist: {
         // the files to concatenate
         src: [
