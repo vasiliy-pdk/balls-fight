@@ -83,6 +83,15 @@ OnlineMultiplayer.prototype = {
 
   update: function (dt) {
     if (this.role) this.role.update(dt);
+  },
+
+  destroy: function() {
+    console.log('In online/game destroy');
+    this.stateProxy.disconnect();
+    delete this.stateProxy;
+
+    this.stateBuffer.destroy();
+    delete this.stateBuffer;
   }
 };
 

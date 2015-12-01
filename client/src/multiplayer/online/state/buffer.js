@@ -49,6 +49,11 @@ GameStateBuffer.prototype = {
        names.push('wooden-crate-' + id);
     });
     return names;
+  },
+
+  destroy:function() {
+    this.flush();
+    storables.destroy();
   }
 };
 

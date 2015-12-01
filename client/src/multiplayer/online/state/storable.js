@@ -40,6 +40,10 @@ FrameStorable.prototype = {
 
   restoreVector: function(state) {
     return new pc.Vec3(state.x, state.y, state.z);
+  },
+
+  destroy: function() {
+    delete this.state;
   }
 };
 
@@ -80,6 +84,13 @@ exports.factory = function (entity, config) {
 exports.getAll = function() {
   return storablesRegistry;
 };
-  
+
+exports.destroy = function(){
+  for (var storableId in storablesRegistry) {
+    storablesRegistry[storableId].destroy();
+    delete storablesRegistry[storableId];
+  }
+};
+
 exports.FrameStorable = FrameStorable;
 exports.RigidBodyFrameStorable = RigidBodyFrameStorable;

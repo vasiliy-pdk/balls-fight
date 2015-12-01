@@ -262,6 +262,15 @@ OnlineMultiplayer.prototype = {
 
   update: function (dt) {
     if (this.role) this.role.update(dt);
+  },
+
+  destroy: function() {
+    console.log('In online/game destroy');
+    this.stateProxy.disconnect();
+    delete this.stateProxy;
+
+    this.stateBuffer.destroy();
+    delete this.stateBuffer;
   }
 };
 
@@ -422,6 +431,11 @@ GameStateBuffer.prototype = {
        names.push('wooden-crate-' + id);
     });
     return names;
+  },
+
+  destroy:function() {
+    this.flush();
+    storables.destroy();
   }
 };
 
@@ -509,6 +523,10 @@ FrameStorable.prototype = {
 
   restoreVector: function(state) {
     return new pc.Vec3(state.x, state.y, state.z);
+  },
+
+  destroy: function() {
+    delete this.state;
   }
 };
 
@@ -549,7 +567,14 @@ exports.factory = function (entity, config) {
 exports.getAll = function() {
   return storablesRegistry;
 };
-  
+
+exports.destroy = function(){
+  for (var storableId in storablesRegistry) {
+    storablesRegistry[storableId].destroy();
+    delete storablesRegistry[storableId];
+  }
+};
+
 exports.FrameStorable = FrameStorable;
 exports.RigidBodyFrameStorable = RigidBodyFrameStorable;
 

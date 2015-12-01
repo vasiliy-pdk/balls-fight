@@ -75,6 +75,13 @@ pc.script.create('teleportSpawner', function (app) {
             
             this.initIntervalRespawn();
             this.respawn(this.getEntity());
+        },
+
+        destroy: function() {
+            if(this._intervalId)
+                clearInterval(this._intervalId);
+
+            delete this.entity;
         }
     };
 

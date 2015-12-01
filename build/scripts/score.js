@@ -135,6 +135,13 @@ pc.script.create('score', function (app) {
 
     // Called every frame, dt is time in seconds since last update
     update: function (dt) {
+    },
+
+    destroy: function () {
+      console.log('In score script destroy');
+      this.scoreEl.remove();
+      delete this.entity;
+      delete this.player;
     }
   };
 
